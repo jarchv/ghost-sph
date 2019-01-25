@@ -9,7 +9,7 @@ in vec3 fragmentColor;
 out vec3 color;
 
 // Values that stay constant for whole mesh
-uniform sampler2D TextureSampler;
+//uniform sampler2D TextureSampler;
 
 void main()
 {

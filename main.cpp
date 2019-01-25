@@ -13,6 +13,19 @@ GLFWwindow* window;
 
 static const GLfloat g_vertex_buffer_data[] = {
 
+
+//  Floor
+    -2.0f, 0.0f,  0.0f,
+    -2.0f, 0.0f,  2.0f,
+     2.0f, 0.0f,  0.0f,
+
+     2.0f, 0.0f,  0.0f,
+    -2.0f, 0.0f,  2.0f,
+     2.0f, 0.0f,  2.0f,
+
+//  Walls
+
+//  Front 0
     -2.0f, 0.0f, 0.0f,
      2.0f, 0.0f, 0.0f,
      2.0f, 2.0f, 0.0f,
@@ -21,49 +34,90 @@ static const GLfloat g_vertex_buffer_data[] = {
     -2.0f, 2.0f, 0.0f,
     -2.0f, 0.0f, 0.0f,
 
-    -2.0f, 0.0f,  0.0f,
-    -2.0f, 0.0f,  2.0f,
-     2.0f, 0.0f,  0.0f,
 
-     2.0f, 0.0f,  0.0f,
-    -2.0f, 0.0f,  2.0f,
-     2.0f, 0.0f,  2.0f,
+
+//  Lateral 0
+     2.0f, 0.0f, 0.0f,
+     2.0f, 2.0f, 0.0f,
+     2.0f, 2.0f, 2.0f,
+
+     2.0f, 2.0f, 2.0f,
+     2.0f, 0.0f, 2.0f,
+     2.0f, 0.0f, 0.0f,
+
+//  Lateral 1
+    -2.0f, 0.0f, 0.0f,
+    -2.0f, 2.0f, 0.0f,
+    -2.0f, 2.0f, 2.0f,
+
+    -2.0f, 2.0f, 2.0f,
+    -2.0f, 0.0f, 2.0f,
+    -2.0f, 0.0f, 0.0f,
+
+//  Front 1
+    -2.0f, 0.0f, 2.0f,
+     2.0f, 0.0f, 2.0f,
+     2.0f, 2.0f, 2.0f,
+
+     2.0f, 2.0f, 2.0f,
+    -2.0f, 2.0f, 2.0f,
+    -2.0f, 0.0f, 2.0f,
+
 };
 
 static const GLfloat g_color_buffer_data[] = {
-    0.0f,  0.0f,  0.8f,
-    0.0f,  0.0f,  0.4f,
-    0.0f,  0.0f,  0.8f,
 
-    0.0f,  0.0f,  0.8f,
-    0.0f,  0.0f,  0.4f,
-    0.0f,  0.0f,  0.8f,
-
-    0.0f,  0.8f,  0.0f,
+//  Floor
     0.0f,  0.4f,  0.0f,
-    0.0f,  0.8f,  0.0f,
-
-    0.0f,  0.8f,  0.0f,
     0.0f,  0.4f,  0.0f,
-    0.0f,  0.8f,  0.0f,
-};
+    0.0f,  0.4f,  0.0f,
 
-/*
-static const GLfloat g_uv_buffer_data[] = { 
-	0.000059f, 1.0f-0.000004f, 
-	0.000103f, 1.0f-0.336048f, 
-	0.335973f, 1.0f-0.335903f, 
-	1.000023f, 1.0f-0.000013f, 
-	0.667979f, 1.0f-0.335851f, 
-	0.999958f, 1.0f-0.336064f, 
-	0.667979f, 1.0f-0.335851f, 
-	0.336024f, 1.0f-0.671877f, 
-	0.667969f, 1.0f-0.671889f, 
-	1.000023f, 1.0f-0.000013f, 
-    0.668104f, 1.0f-0.000013f,
-    0.667979f, 1.0f-0.335851f,
+    0.0f,  0.4f,  0.0f,
+    0.0f,  0.4f,  0.0f,
+    0.0f,  0.4f,  0.0f,
+
+//  Walls
+
+//  Front 0
+    0.0f,  0.0f,  0.4f,
+    0.0f,  0.0f,  0.4f,
+    0.0f,  0.0f,  0.4f,
+
+    0.0f,  0.0f,  0.4f,
+    0.0f,  0.0f,  0.4f,
+    0.0f,  0.0f,  0.4f,
+
+
+
+
+//  Lateral 0
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+
+//  Lateral 1
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+    0.4f,  0.0f,  0.4f,
+
+//  Front 1
+    0.0f,  0.4f,  0.4f,
+    0.0f,  0.4f,  0.4f,
+    0.0f,  0.4f,  0.4f,
+
+    0.0f,  0.4f,  0.4f,
+    0.0f,  0.4f,  0.4f,
+    0.0f,  0.4f,  0.4f,
+
 };
-*/
 
 int main(int argc, char** argv)
 {
@@ -102,7 +156,7 @@ int main(int argc, char** argv)
     // Establer el mouse en el centro
     glfwPollEvents();
     glfwSetCursorPos(window, 640/2, 480/2);
-    
+    glDisable(GL_CULL_FACE);
 
     // Dark blue background
     glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
@@ -114,7 +168,7 @@ int main(int argc, char** argv)
 	//glDepthFunc(GL_LESS); 
 
 	// Descartar los triangulos cuya normal no esta hacia la camara
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 
     
     
@@ -127,7 +181,6 @@ int main(int argc, char** argv)
 
 	// Get a handle for our "MVP" uniform
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-
     /*
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
@@ -159,10 +212,10 @@ int main(int argc, char** argv)
 	// Our ModelViewProjection : multiplication of our 3 matrices
     glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around    
     
-    */
+    
     GLuint Texture   = loadBMP("uvtemplate.bmp");
     GLuint TextureID = glGetUniformLocation(programID, "TextureSampler");
-    
+    */
     
     
     // This will identify our vertex buffer
@@ -185,16 +238,6 @@ int main(int argc, char** argv)
                                          g_color_buffer_data ,
                                          GL_STATIC_DRAW);   
 
-    
-    /*
-    GLuint uvbuffer;
-
-    glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data),
-                                         g_uv_buffer_data ,
-                                         GL_STATIC_DRAW);
-    */
     do {
         glClear(GL_COLOR_BUFFER_BIT);
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -205,14 +248,24 @@ int main(int argc, char** argv)
         // Calcular la MVP matrix para las entradas del mouse y teclado
         computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = getProjectionMatrix();
-		glm::mat4 ViewMatrix = getViewMatrix();
+		glm::mat4 ViewMatrix  = getViewMatrix();
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
+
+        glm::vec4 lightPos = glm::vec4(4,4,1,0);
+        
         glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;        
 		
+        GLuint MatrixID      = glGetUniformLocation(programID, "MVP");
+        GLuint ViewMatrixID  = glGetUniformLocation(programID, "V");
+        GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
+        GLuint LightID       = glGetUniformLocation(programID, "LightPosition_worldspace");
+        
         // Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
+        glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+        glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+        glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
         // 1st attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -241,7 +294,9 @@ int main(int argc, char** argv)
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
 
-        glDrawArrays(GL_TRIANGLES, 0, 3 * 4);         
+        //std::cout << sizeof(g_color_buffer_data)/(3 * 3 * 8 ) << std::endl;
+        int nTriangles = sizeof(g_color_buffer_data)/(3 * 3 * 4 );
+        glDrawArrays(GL_TRIANGLES, 0, 3 * nTriangles);         
         
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
