@@ -8,7 +8,7 @@
 GLFWwindow* window;
 
 #include "common/loadshader.hpp"
-#include "common/texture.hpp"
+//#include "common/texture.hpp"
 #include "common/controls.hpp"
 
 static const GLfloat g_vertex_buffer_data[] = {
@@ -87,9 +87,6 @@ static const GLfloat g_color_buffer_data[] = {
     0.0f,  0.0f,  0.4f,
     0.0f,  0.0f,  0.4f,
 
-
-
-
 //  Lateral 0
     0.4f,  0.0f,  0.4f,
     0.4f,  0.0f,  0.4f,
@@ -119,6 +116,9 @@ static const GLfloat g_color_buffer_data[] = {
 
 };
 
+int W = 720;
+int H = 480;
+
 int main(int argc, char** argv)
 {
     if (!glfwInit()){
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-    window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
+    window = glfwCreateWindow(W, H, "My Title", NULL, NULL);
 
     if (!window){
         std::cout << "Window or OpenGL context creation failer!" << std::endl;
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 
     // Establer el mouse en el centro
     glfwPollEvents();
-    glfwSetCursorPos(window, 640/2, 480/2);
+    glfwSetCursorPos(window, W/2, H/2);
     glDisable(GL_CULL_FACE);
 
     // Dark blue background
@@ -176,48 +176,12 @@ int main(int argc, char** argv)
     glGenBuffers(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
-    GLuint programID = LoadShaders( "vertexShader.glsl", 
-                                    "fragmentShader.glsl" );
+    GLuint programID = LoadShaders( "../src/vertexShader.glsl", 
+                                    "../src/fragmentShader.glsl" );
 
 	// Get a handle for our "MVP" uniform
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-    /*
-	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 
-	// Or, for an ortho camera :
-    //glm::mat4 Projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
-
-	// Camera matrix
-	glm::mat4 View  = glm::lookAt(  glm::vec3(0,5,10), // Camera is at (0,5,10), in World Space
-								    glm::vec3(0.0f,0.0f,50.0f), // and looks at the origin
-								    glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
-                                 );
-
-	// Model matrix : an identity matrix (model will be at the origin)
-    glm::mat4 Model = glm::mat4(1.0f);
-    
-    glm::mat4 ScalingMatrix   = glm::scale(glm::mat4(1.0f),glm::vec3(1.0f, 1.0f , 1.0f));
-    //Model = ScalingMatrix * Model;
-    
-    
-    glm::vec3 RotationAxis(0.0f, 0.0f, 1.0f);
-    glm::mat4 RotationMatrix = glm::rotate(Model, (glm::mediump_float)M_PI * 0.0f, RotationAxis );
-
-    //Model = RotationMatrix * Model;
-    
-    glm::mat4 TranslateMatrix = glm::translate( Model, glm::vec3(0.0f, 0.0f, 0.0f));
-    Model = TranslateMatrix * RotationMatrix * ScalingMatrix * Model;
-    
-	// Our ModelViewProjection : multiplication of our 3 matrices
-    glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around    
-    
-    
-    GLuint Texture   = loadBMP("uvtemplate.bmp");
-    GLuint TextureID = glGetUniformLocation(programID, "TextureSampler");
-    */
-    
-    
     // This will identify our vertex buffer
     GLuint vertexbuffer;
     // Generate 1 buffer, put the resulting identifiers in vertexbuffer
@@ -294,7 +258,6 @@ int main(int argc, char** argv)
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
 
-        //std::cout << sizeof(g_color_buffer_data)/(3 * 3 * 8 ) << std::endl;
         int nTriangles = sizeof(g_color_buffer_data)/(3 * 3 * 4 );
         glDrawArrays(GL_TRIANGLES, 0, 3 * nTriangles);         
         

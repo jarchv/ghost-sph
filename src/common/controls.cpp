@@ -18,9 +18,9 @@ glm::mat4 getProjectionMatrix(){
 }
 
 // Initial position : on +Z
-glm::vec3 position = glm::vec3( 5, 4, 6); 
+glm::vec3 position = glm::vec3( 4.0, 5.0, 7.0); 
 // Initial horizontal angle : toward -Z
-float horizontalAngle = 3.14f;
+float horizontalAngle = 3.14f + 0.7f;
 // Initial vertical angle : none
 float verticalAngle = -0.55f;
 // Initial Field of View
@@ -28,6 +28,9 @@ float initialFoV = 45.0f;
 
 float speed = 3.0f; // 3 units / second
 float mouseSpeed = 0.005f;
+
+int Wc = 720;
+int Hc = 480;
 
 void computeMatricesFromInputs(){
 
@@ -43,11 +46,11 @@ void computeMatricesFromInputs(){
 	glfwGetCursorPos(window, &xpos, &ypos);
 
 	// Reset mouse position for next frame
-	glfwSetCursorPos(window, 640/2, 480/2);
+	glfwSetCursorPos(window, Wc/2, Hc/2);
 
 	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(640/2 - xpos );
-	verticalAngle   += mouseSpeed * float(480/2 - ypos );
+	horizontalAngle += mouseSpeed * float(Wc/2 - xpos );
+	verticalAngle   += mouseSpeed * float(Hc/2 - ypos );
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
