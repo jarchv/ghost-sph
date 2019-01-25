@@ -1,11 +1,10 @@
-#version 320 es
+#version 330 core
 
 precision mediump float;
 
 // Interpolated values from the vertex shaders
 in vec3 fragmentColor;
 //in vec2 UV;
-
 // Out data
 out vec3 color;
 

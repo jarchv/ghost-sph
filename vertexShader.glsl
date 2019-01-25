@@ -1,4 +1,4 @@
-#version 320 es
+#version 330 core
 
 /*
 location = 0, refers to the buffer we use to feed the VertexPosition_modelspace

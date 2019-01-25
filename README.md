@@ -1,1 +1,1 @@
-# Basic SPH
+# OpenGL Tutorial

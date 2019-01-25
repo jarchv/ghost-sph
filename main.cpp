@@ -13,22 +13,21 @@ GLFWwindow* window;
 
 static const GLfloat g_vertex_buffer_data[] = {
 
-   -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f,  1.0f, -1.0f,
+    -2.0f, 0.0f, 0.0f,
+     2.0f, 0.0f, 0.0f,
+     2.0f, 2.0f, 0.0f,
 
-    1.0f,  1.0f, -1.0f,
-   -1.0f,  1.0f, -1.0f,
-   -1.0f, -1.0f, -1.0f,    
+     2.0f, 2.0f, 0.0f,
+    -2.0f, 2.0f, 0.0f,
+    -2.0f, 0.0f, 0.0f,
 
-   -1.0f, -1.0f,  1.0f,
-    1.0f, -1.0f,  1.0f,
-    1.0f, -1.0f, -1.0f,
+    -2.0f, 0.0f,  0.0f,
+    -2.0f, 0.0f,  2.0f,
+     2.0f, 0.0f,  0.0f,
 
-    1.0f, -1.0f, -1.0f,
-   -1.0f, -1.0f, -1.0f,
-   -1.0f, -1.0f,  1.0f,
-
+     2.0f, 0.0f,  0.0f,
+    -2.0f, 0.0f,  2.0f,
+     2.0f, 0.0f,  2.0f,
 };
 
 static const GLfloat g_color_buffer_data[] = {
@@ -129,7 +128,7 @@ int main(int argc, char** argv)
 	// Get a handle for our "MVP" uniform
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-
+    /*
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 
@@ -138,7 +137,7 @@ int main(int argc, char** argv)
 
 	// Camera matrix
 	glm::mat4 View  = glm::lookAt(  glm::vec3(0,5,10), // Camera is at (0,5,10), in World Space
-								    glm::vec3(0,0,0), // and looks at the origin
+								    glm::vec3(0.0f,0.0f,50.0f), // and looks at the origin
 								    glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
                                  );
 
@@ -160,7 +159,7 @@ int main(int argc, char** argv)
 	// Our ModelViewProjection : multiplication of our 3 matrices
     glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around    
     
-    
+    */
     GLuint Texture   = loadBMP("uvtemplate.bmp");
     GLuint TextureID = glGetUniformLocation(programID, "TextureSampler");
     
