@@ -169,51 +169,46 @@ static const GLfloat g_vertex_buffer_data[] =
 static const GLfloat g_color_buffer_data[] = {
 
 //  Floor
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
 
 //  Walls
 
 //  Front 0
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
 
 //  Lateral 0
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
 
 //  Lateral 1
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
 
 //  Front 1
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
-    0.2f,  0.2f,  0.4f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
+    0.6f,  0.6f,  0.6f,
 
 };
 
@@ -455,8 +450,7 @@ int main(int argc, char** argv)
             (void*)0    // array buffer offset
         );
 
-        int nTriangles = sizeof(g_color_buffer_data)/(3 * 3 * 4 );
-        glDrawArrays(GL_TRIANGLES, 0, 3 * nTriangles);    
+ 
 
         // 3th attribute buffer : colors
         glEnableVertexAttribArray(2);
@@ -470,6 +464,14 @@ int main(int argc, char** argv)
             (void*)0    // array buffer offset
         );
 
+        int nTriangles = sizeof(g_color_buffer_data)/(3 * 3 * 4 );
+        glDrawArrays(GL_TRIANGLES, 0, 3 * nTriangles);   
+
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
+
+        glUseProgram(programID);
         // 4th attribute buffer : colors
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, spherebuffer);
@@ -502,7 +504,6 @@ int main(int argc, char** argv)
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
-        glDisableVertexAttribArray(3);
 
         // Swap buffer
         glfwSwapBuffers(window);

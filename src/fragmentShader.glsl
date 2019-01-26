@@ -68,7 +68,7 @@ void main()
 		// Specular : reflective highlight, like a mirror
         MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / (distance*distance);
     
-    color.a = 0.2;
+    color.a = 0.3;
 
     //color.rgb = sphereColors;
     //color.a   = color.a   + 1.0;

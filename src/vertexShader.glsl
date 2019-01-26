@@ -49,7 +49,6 @@ void main()
 
     // Output position of the vertex, in clip space : MVP * position
     gl_Position   = MVP * vec4(vertexPosition_modelspace, 1);// + MVP * vec4(spherevertex, 1);
-    //gl_Position   = MVP * vec4(spherevertex, 1);
 
 	// La posicion del vertice solamente despues de la transformacion espacial (rotacion)
 	Position_worldspace = (M * vec4(vertexPosition_modelspace,1)).xyz;
