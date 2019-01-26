@@ -14,7 +14,6 @@ in vec3 Position_worldspace;
 in vec3 Normal_cameraspace;
 in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
-//in vec4 particlecolor;
 
 float cosTheta;	
 
@@ -70,5 +69,8 @@ void main()
         MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / (distance*distance);
     
     color.a = 0.2;
-    //color += particlecolor;
+
+    //color.rgb = sphereColors;
+    //color.a   = color.a   + 1.0;
+    //color.a = 1.0;
 }

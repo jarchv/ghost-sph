@@ -23,8 +23,8 @@ the position of the vertex for each run of the vertex shader.
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec3 vertexColor;
 layout(location = 2) in vec3 vertexNormal_modelspace;
-layout(location = 3) in vec4 xyzs;
-layout(location = 4) in vec4 particleColor;
+//layout(location = 3) in vec3 spherevertex;
+//layout(location = 3) in vec3 spherecolor;
 //layout(location = 1) in vec2 vertexUV;
 
 // Output data: will be interpolated for each fragment
@@ -33,7 +33,6 @@ out vec3 Position_worldspace;
 out vec3 Normal_cameraspace;
 out vec3 EyeDirection_cameraspace;
 out vec3 LightDirection_cameraspace;
-out vec4 particlecolor;
 
 //out vec2 UV;
 
@@ -49,7 +48,8 @@ void main()
     // gl_Position.w   = 1.0;
 
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position   = MVP * vec4(vertexPosition_modelspace, 1);
+    gl_Position   = MVP * vec4(vertexPosition_modelspace, 1);// + MVP * vec4(spherevertex, 1);
+    //gl_Position   = MVP * vec4(spherevertex, 1);
 
 	// La posicion del vertice solamente despues de la transformacion espacial (rotacion)
 	Position_worldspace = (M * vec4(vertexPosition_modelspace,1)).xyz;
@@ -68,11 +68,5 @@ void main()
 
     // vertexColor
     fragmentColor = vertexColor;
-    
-    float particleSize = xyzs.w;
-    vec3  particleCenter_wordspace = xyzs.xyz;
-
-    vec3 vertexPosition_worldspace = particleCenter_wordspace;
-
-    particlecolor = particleColor;
+    //sphereColors  = spherecolor;
 }

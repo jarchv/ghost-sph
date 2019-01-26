@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <algorithm>
 
 #include <GL/glew.h>
@@ -11,54 +12,110 @@ GLFWwindow* window;
 #include "common/loadshader.hpp"
 #include "common/controls.hpp"
 
+#define PI 3.14159
 
-struct Particle
-{
-    glm::vec3 pos, speed;
-    unsigned char r,g,b,a;
-    float size, angle, weight;
-    float life;
-    float cameradistance;
+GLfloat angle = -90;
+int n=20;
+float posX = 0, posY = 0, posZ = 0; 
 
-    bool operator<(const Particle& that) const{
-        return this->cameradistance > that.cameradistance;
-    }
-};
+int nV = 18;
+static GLfloat *g_spherevertex_buffer_data = new GLfloat[nV * (n + 1) * (n + 1)];
+static GLfloat *g_spherecolor_buffer_data  = new GLfloat[nV * (n + 1) * (n + 1)];
 
-const int MaxParticles = 100;
+void Csphere(float radio){
+    
+	float px, py, pz;
+	int i, j;
+	float incO = 2 * PI / n;
+	float incA = PI / n;
+	//glBegin(GL_TRIANGLE_STRIP);
+	for (i = 0; i <= n; i++){
+		for (j = 0; j <= n; j++) {
+			pz = cos(PI - (incA*j))*radio;
+			py = sin(PI - (incA*j))*sin(incO*i)*radio;
+			px = sin(PI - (incA*j))*cos(incO*i)*radio;
+			//printf("%lf%lf%lf\n", px, py, pz);
+            //g_spherevertex_buffer_data.push_back(px);
+            //g_spherevertex_buffer_data.push_back(py);
+            //g_spherevertex_buffer_data.push_back(pz);
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV    ] = px;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 1] = py;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 2] = pz;
+            
+			//glVertex3f(px, py, pz);
+			pz = cos(PI - (incA*j))*radio;
+			py = sin(PI - (incA*j))*sin(incO*(i + 1))*radio;
+			px = sin(PI - (incA*j))*cos(incO*(i + 1))*radio;
+			//glVertex3f(px, py, pz);
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 3] = px;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 4] = py;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 5] = pz;
 
-Particle ParticlesContainer[MaxParticles];
+			pz = cos(PI - (incA*(j + 1)))*radio;
+			py = sin(PI - (incA*(j + 1)))*sin(incO*(i + 1))*radio;
+			px = sin(PI - (incA*(j + 1)))*cos(incO*(i + 1))*radio;
 
-int LastUsedParticle = 0;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 6] = px;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 7] = py;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 8] = pz;
 
-// Find particles in container
-int FindUnusedParticle()
-{
-    for(int i = LastUsedParticle; i < MaxParticles; i++)
-    {
-        if (ParticlesContainer[i].life < 0)
-        {
-            LastUsedParticle = i;
-            return i;
-        }
-    }
+			pz = cos(PI - (incA*(j + 1)))*radio;
+			py = sin(PI - (incA*(j + 1)))*sin(incO*(i + 1))*radio;
+			px = sin(PI - (incA*(j + 1)))*cos(incO*(i + 1))*radio;
 
-    for(int i = 0; i < LastUsedParticle; i++)
-    {
-        if(ParticlesContainer[i].life < 0)
-        {
-            LastUsedParticle = i;
-            return i;
-        }
-    }
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV +  9] = px;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 10] = py;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 11] = pz;
 
-    return 0;
+			pz = cos(PI - (incA*(j + 1)))*radio;
+			py = sin(PI - (incA*(j + 1)))*sin(incO*(i))*radio;
+			px = sin(PI - (incA*(j + 1)))*cos(incO*(i))*radio;
+
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 12] = px;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 13] = py;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 14] = pz;
+
+			pz = cos(PI - (incA*(j)))*radio;
+			py = sin(PI - (incA*(j)))*sin(incO*(i))*radio;
+			px = sin(PI - (incA*(j)))*cos(incO*(i))*radio;
+
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 15] = px;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 16] = py;
+            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 17] = pz;
+
+            for(int k = 0; k < nV/3; k++)
+            {
+                g_spherecolor_buffer_data[(i * (n+1) + j)*nV + k*3 + 0] = 0.0f;
+                g_spherecolor_buffer_data[(i * (n+1) + j)*nV + k*3 + 1] = 0.5f;
+                g_spherecolor_buffer_data[(i * (n+1) + j)*nV + k*3 + 2] = 0.45f;
+            }
+		}
+	}
+	//glEnd();
 }
 
-void SortParticles()
-{
-    std::sort(&ParticlesContainer[0], &ParticlesContainer[MaxParticles]);
+
+/*
+void display(void){
+    
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glPushMatrix();
+	glLoadIdentity();
+	glRotatef(angle, 1.0, 0.0, 0.0);
+	glScalef(2.0, 2.0, 2.0);
+
+	//Multiply current matrix
+	glTranslatef(posX, posY, posZ);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glColor4f(0.0, 0.0, 0.75, 0.5);
+	glLineWidth(2.0);
+	esfera(5);
+	glPopMatrix();
+	glfwSwapBuffers(window);
 }
+*/
 static const GLfloat g_vertex_buffer_data[] = 
 {
 //  Floor
@@ -112,13 +169,13 @@ static const GLfloat g_vertex_buffer_data[] =
 static const GLfloat g_color_buffer_data[] = {
 
 //  Floor
-    0.2f,  0.2f,  0.5f,
-    0.2f,  0.2f,  0.5f,
-    0.2f,  0.2f,  0.5f,
+    0.2f,  0.2f,  0.4f,
+    0.2f,  0.2f,  0.4f,
+    0.2f,  0.2f,  0.4f,
 
-    0.2f,  0.2f,  0.5f,
-    0.2f,  0.2f,  0.5f,
-    0.2f,  0.2f,  0.5f,
+    0.2f,  0.2f,  0.4f,
+    0.2f,  0.2f,  0.4f,
+    0.2f,  0.2f,  0.4f,
 
 //  Walls
 
@@ -205,6 +262,26 @@ static const GLfloat g_normal_buffer_data[] = {
 int W = 720;
 int H = 480;
 
+void init(void)
+{
+    Csphere(0.05);
+
+    std::cout << sizeof(g_spherevertex_buffer_data) << std::endl;
+    std::cout << sizeof(g_vertex_buffer_data) << std::endl;
+    // Dark blue background
+    glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
+
+    // Descartar los triangulos cuya normal no esta hacia la camara
+    glDisable(GL_CULL_FACE);
+    
+	// Enable depth test
+	//glEnable(GL_DEPTH_TEST);
+
+	// Accept fragment if it closer to the camera than the former one
+	glDepthFunc(GL_LESS); 
+}
+
+
 int main(int argc, char** argv)
 {
     if (!glfwInit()){
@@ -238,24 +315,15 @@ int main(int argc, char** argv)
     // Hide the mouse and enable unlimited mouvement
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
     // Establer el mouse en el centro
     glfwPollEvents();
     glfwSetCursorPos(window, W/2, H/2);
-    glDisable(GL_CULL_FACE);
 
-    // Dark blue background
-    glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
 
-	// Enable depth test
-	//glEnable(GL_DEPTH_TEST);
 
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS); 
 
-	// Descartar los triangulos cuya normal no esta hacia la camara
-    //glEnable(GL_CULL_FACE);
-
+    init();
+	
     
     
     GLuint VertexArrayID;
@@ -265,43 +333,6 @@ int main(int argc, char** argv)
     GLuint programID = LoadShaders( "../src/vertexShader.glsl", 
                                     "../src/fragmentShader.glsl" );
 
-	static GLfloat* g_particule_position_size_data = new GLfloat[MaxParticles * 4];
-	static GLubyte* g_particule_color_data         = new GLubyte[MaxParticles * 4];
-
-	for(int i=0; i<MaxParticles; i++){
-		ParticlesContainer[i].life = -1.0f;
-		ParticlesContainer[i].cameradistance = -1.0f;
-    }
-
-	// The VBO containing the 4 vertices of the particles.
-	// Thanks to instancing, they will be shared by all particles.
-	static const GLfloat g_vertexparticle_buffer_data[] = { 
-		 -0.5f, -0.5f, 0.0f,
-		  0.5f, -0.5f, 0.0f,
-		 -0.5f,  0.5f, 0.0f,
-		  0.5f,  0.5f, 0.0f,
-	};
-	GLuint billboard_vertex_buffer;
-	glGenBuffers(1, &billboard_vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertexparticle_buffer_data), g_vertexparticle_buffer_data, GL_STATIC_DRAW);
-
-	GLuint particles_position_buffer;
-	glGenBuffers(1, &particles_position_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-
-	GLuint particles_color_buffer;
-	glGenBuffers(1, &particles_color_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-	// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
-	
-    // Get a handle for our "MVP" uniform
-    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
-    GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
     // This will identify our vertex buffer
     GLuint vertexbuffer;
     // Generate 1 buffer, put the resulting identifiers in vertexbuffer
@@ -330,6 +361,22 @@ int main(int argc, char** argv)
                                          g_normal_buffer_data ,
                                          GL_STATIC_DRAW);   
 
+
+    GLuint spherebuffer;
+
+    glGenBuffers(1, &spherebuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, spherebuffer);
+    glBufferData(GL_ARRAY_BUFFER, nV * (n + 1) * (n + 1) * sizeof(float),
+                                         g_spherevertex_buffer_data ,
+                                         GL_STATIC_DRAW); 
+
+    GLuint spherecolor_buffer;
+
+    glGenBuffers(1, &spherecolor_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, spherecolor_buffer);
+    glBufferData(GL_ARRAY_BUFFER, nV * (n + 1) * (n + 1) * sizeof(float),
+                                         g_spherecolor_buffer_data ,
+                                         GL_STATIC_DRAW); 
 
     glUseProgram(programID);
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
@@ -374,90 +421,6 @@ int main(int argc, char** argv)
         GLuint ModelMatrixID = glGetUniformLocation(programID, "M");     
         
 
-        glm::vec3 CameraPosition(glm::inverse(ViewMatrix)[3]);
-        int newparticles = (int)(delta*10000.0);
-
-        if (newparticles > (int)(0.016f*10000.0))
-            newparticles = (int)(0.016f*10000.0);
-
-		for(int i=0; i<newparticles; i++){
-			int particleIndex = FindUnusedParticle();
-			ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-			ParticlesContainer[particleIndex].pos = glm::vec3(0,0,-20.0f);
-
-			float spread = 1.5f;
-			glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
-			// Very bad way to generate a random direction; 
-			// See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
-			// combined with some user-controlled parameters (main direction, spread, etc)
-			glm::vec3 randomdir = glm::vec3(
-				(rand()%2000 - 1000.0f)/1000.0f,
-				(rand()%2000 - 1000.0f)/1000.0f,
-				(rand()%2000 - 1000.0f)/1000.0f
-			);
-			
-			ParticlesContainer[particleIndex].speed = maindir + randomdir*spread;
-
-
-			// Very bad way to generate a random color
-			ParticlesContainer[particleIndex].r = rand() % 256;
-			ParticlesContainer[particleIndex].g = rand() % 256;
-			ParticlesContainer[particleIndex].b = rand() % 256;
-			ParticlesContainer[particleIndex].a = (rand() % 256) / 3;
-
-			ParticlesContainer[particleIndex].size = (rand()%1000)/2000.0f + 0.1f;
-			
-		}
-
-		int ParticlesCount = 0;
-		for(int i=0; i<MaxParticles; i++){
-
-			Particle& p = ParticlesContainer[i]; // shortcut
-
-			if(p.life > 0.0f){
-
-				// Decrease life
-				p.life -= delta;
-				if (p.life > 0.0f){
-
-					// Simulate simple physics : gravity only, no collisions
-					p.speed += glm::vec3(0.0f,-9.81f, 0.0f) * (float)delta * 0.5f;
-					p.pos += p.speed * (float)delta;
-					p.cameradistance = glm::length( p.pos - CameraPosition );
-					//ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
-
-					// Fill the GPU buffer
-					g_particule_position_size_data[4*ParticlesCount+0] = p.pos.x;
-					g_particule_position_size_data[4*ParticlesCount+1] = p.pos.y;
-					g_particule_position_size_data[4*ParticlesCount+2] = p.pos.z;
-												   
-					g_particule_position_size_data[4*ParticlesCount+3] = p.size;
-												   
-					g_particule_color_data[4*ParticlesCount+0] = p.r;
-					g_particule_color_data[4*ParticlesCount+1] = p.g;
-					g_particule_color_data[4*ParticlesCount+2] = p.b;
-					g_particule_color_data[4*ParticlesCount+3] = p.a;
-
-				}else{
-					// Particles that just died will be put at the end of the buffer in SortParticles();
-					p.cameradistance = -1.0f;
-				}
-
-				ParticlesCount++;
-
-			}
-		}
-
-        SortParticles();
-
-
-		glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-		glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-		glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
-
-		glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-		glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-        glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
         // Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
@@ -479,6 +442,7 @@ int main(int argc, char** argv)
             (void*)0    // array buffer offset
         );
 
+
         // 2nd attribute buffer : colors
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
@@ -490,6 +454,9 @@ int main(int argc, char** argv)
             0,          // stride
             (void*)0    // array buffer offset
         );
+
+        int nTriangles = sizeof(g_color_buffer_data)/(3 * 3 * 4 );
+        glDrawArrays(GL_TRIANGLES, 0, 3 * nTriangles);    
 
         // 3th attribute buffer : colors
         glEnableVertexAttribArray(2);
@@ -504,10 +471,10 @@ int main(int argc, char** argv)
         );
 
         // 4th attribute buffer : colors
-        glEnableVertexAttribArray(3);
-        glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, spherebuffer);
         glVertexAttribPointer(
-            3,          // attibute 2, must match the layout in the shader
+            0,          // attibute 2, must match the layout in the shader
             3,          // size
             GL_FLOAT,   // type
             GL_FALSE,   // normalizerd?
@@ -516,10 +483,10 @@ int main(int argc, char** argv)
         );
 
         // 5th attribute buffer : colors
-        glEnableVertexAttribArray(4);
-        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, spherecolor_buffer);
         glVertexAttribPointer(
-            4,          // attibute 2, must match the layout in the shader
+            1,          // attibute 2, must match the layout in the shader
             3,          // size
             GL_FLOAT,   // type
             GL_FALSE,   // normalizerd?
@@ -527,34 +494,15 @@ int main(int argc, char** argv)
             (void*)0    // array buffer offset
         );
 
-        // 6th attribute buffer : colors
-        glEnableVertexAttribArray(5);
-        glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-        glVertexAttribPointer(
-            5,          // attibute 2, must match the layout in the shader
-            3,          // size
-            GL_UNSIGNED_BYTE,   // type
-            GL_TRUE,   // normalizerd?
-            0,          // stride
-            (void*)0    // array buffer offset
-        );
-
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
+     
 
-        int nTriangles = sizeof(g_color_buffer_data)/(3 * 3 * 4 );
-        glDrawArrays(GL_TRIANGLES, 0, 3 * nTriangles);         
-
-		//glVertexAttribDivisor(3, 0); // particles vertices : always reuse the same 4 vertices -> 0
-		//glVertexAttribDivisor(4, 1); // positions : one per quad (its center)                 -> 1
-        //glVertexAttribDivisor(5, 1); // color : one per quad     
-        //glDrawArraysInstanced(GL_TRIANGLE_STRIP, 3, 4, ParticlesCount);
-
+        glDrawArrays(GL_TRIANGLES, 0, nV * (n + 1) * (n + 1));   
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
         glDisableVertexAttribArray(3);
-        glDisableVertexAttribArray(4);
 
         // Swap buffer
         glfwSwapBuffers(window);
@@ -565,9 +513,10 @@ int main(int argc, char** argv)
           glfwWindowShouldClose(window)       == 0            );
     
 
-	// Cleanup VBO
 	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteVertexArrays(1, &VertexArrayID);
+	glDeleteBuffers(1, &colorbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+    glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteProgram(programID);
     
     glfwTerminate();
