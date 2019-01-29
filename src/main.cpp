@@ -14,108 +14,79 @@ GLFWwindow* window;
 
 #define PI 3.14159
 
-GLfloat angle = -90;
-int n=20;
-float posX = 0, posY = 0, posZ = 0; 
+int   n     = 20;
+float posX  = 0.0;
+float posY  = 0.0;
+float posZ  = 0.0; 
 
-int nV = 18;
-static GLfloat *g_spherevertex_buffer_data = new GLfloat[nV * (n + 1) * (n + 1)];
-static GLfloat *g_spherecolor_buffer_data  = new GLfloat[nV * (n + 1) * (n + 1)];
+int nSphVtx = 18;
 
-void Csphere(float radio){
+int sphereSize = nSphVtx * n * n;
+
+static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
+static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
+
+void SphereBuffer(float radio, float x0, float y0, float z0){
     
 	float px, py, pz;
 	int i, j;
-	float incO = 2 * PI / n;
-	float incA = PI / n;
-	//glBegin(GL_TRIANGLE_STRIP);
-	for (i = 0; i <= n; i++){
-		for (j = 0; j <= n; j++) {
-			pz = cos(PI - (incA*j))*radio;
-			py = sin(PI - (incA*j))*sin(incO*i)*radio;
-			px = sin(PI - (incA*j))*cos(incO*i)*radio;
-			//printf("%lf%lf%lf\n", px, py, pz);
-            //g_spherevertex_buffer_data.push_back(px);
-            //g_spherevertex_buffer_data.push_back(py);
-            //g_spherevertex_buffer_data.push_back(pz);
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV    ] = px;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 1] = py;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 2] = pz;
+	float phi   = 2 * PI / ((float)n);
+	float theta =     PI / ((float)n);
+
+	for (i = 0; i < n; i++){
+		for (j = 0; j < n; j++) {
+			pz = cos(PI - (theta*j))*radio;
+			py = sin(PI - (theta*j))*sin(phi*i)*radio;
+			px = sin(PI - (theta*j))*cos(phi*i)*radio;
+
+            int di = 0;
+            int dj = 0;
             
-			//glVertex3f(px, py, pz);
-			pz = cos(PI - (incA*j))*radio;
-			py = sin(PI - (incA*j))*sin(incO*(i + 1))*radio;
-			px = sin(PI - (incA*j))*cos(incO*(i + 1))*radio;
-			//glVertex3f(px, py, pz);
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 3] = px;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 4] = py;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 5] = pz;
-
-			pz = cos(PI - (incA*(j + 1)))*radio;
-			py = sin(PI - (incA*(j + 1)))*sin(incO*(i + 1))*radio;
-			px = sin(PI - (incA*(j + 1)))*cos(incO*(i + 1))*radio;
-
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 6] = px;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 7] = py;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 8] = pz;
-
-			pz = cos(PI - (incA*(j + 1)))*radio;
-			py = sin(PI - (incA*(j + 1)))*sin(incO*(i + 1))*radio;
-			px = sin(PI - (incA*(j + 1)))*cos(incO*(i + 1))*radio;
-
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV +  9] = px;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 10] = py;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 11] = pz;
-
-			pz = cos(PI - (incA*(j + 1)))*radio;
-			py = sin(PI - (incA*(j + 1)))*sin(incO*(i))*radio;
-			px = sin(PI - (incA*(j + 1)))*cos(incO*(i))*radio;
-
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 12] = px;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 13] = py;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 14] = pz;
-
-			pz = cos(PI - (incA*(j)))*radio;
-			py = sin(PI - (incA*(j)))*sin(incO*(i))*radio;
-			px = sin(PI - (incA*(j)))*cos(incO*(i))*radio;
-
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 15] = px;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 16] = py;
-            g_spherevertex_buffer_data[(i * (n+1) + j)*nV + 17] = pz;
-
-            for(int k = 0; k < nV/3; k++)
+            // Bottom Triangle
+            
+            for (int u = 0; u < nSphVtx/2; u+=3)
             {
-                g_spherecolor_buffer_data[(i * (n+1) + j)*nV + k*3 + 0] = 0.0f;
-                g_spherecolor_buffer_data[(i * (n+1) + j)*nV + k*3 + 1] = 0.5f;
-                g_spherecolor_buffer_data[(i * (n+1) + j)*nV + k*3 + 2] = 0.45f;
+                di =  u >= 3? 1: 0;
+                dj =  u >= 6? 1: 0;
+
+                pz = cos(PI - theta*(j + dj))*radio;
+                py = sin(PI - theta*(j + dj))*sin(phi*(i + di))*radio;
+                px = sin(PI - theta*(j + dj))*cos(phi*(i + di))*radio;          
+
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u    ] = x0 + px;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 1] = y0 + py;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 2] = z0 + pz;      
+            }
+
+            di = 0;
+            dj = 0;
+
+            // Top Triangle
+
+            for (int u = nSphVtx/2; u < nSphVtx; u+=3)
+            {
+                di =  u < 12? 1: 0;
+                dj =  u < 15? 1: 0;
+
+                pz = cos(PI - theta*(j + dj))*radio;
+                py = sin(PI - theta*(j + dj))*sin(phi*(i + di))*radio;
+                px = sin(PI - theta*(j + dj))*cos(phi*(i + di))*radio;          
+
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u    ] = x0 + px;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 1] = y0 + py;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 2] = z0 + pz;      
+            }
+
+            for(int k = 0; k < nSphVtx/3; k++)
+            {
+                g_spherecolor_buffer_data[(i * n + j)*nSphVtx + k*3 + 0] = 0.0f;
+                g_spherecolor_buffer_data[(i * n + j)*nSphVtx + k*3 + 1] = 0.5f;
+                g_spherecolor_buffer_data[(i * n + j)*nSphVtx + k*3 + 2] = 0.45f;
             }
 		}
 	}
-	//glEnd();
 }
 
-
-/*
-void display(void){
-    
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glPushMatrix();
-	glLoadIdentity();
-	glRotatef(angle, 1.0, 0.0, 0.0);
-	glScalef(2.0, 2.0, 2.0);
-
-	//Multiply current matrix
-	glTranslatef(posX, posY, posZ);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glColor4f(0.0, 0.0, 0.75, 0.5);
-	glLineWidth(2.0);
-	esfera(5);
-	glPopMatrix();
-	glfwSwapBuffers(window);
-}
-*/
 static const GLfloat g_vertex_buffer_data[] = 
 {
 //  Floor
@@ -259,10 +230,8 @@ int H = 480;
 
 void init(void)
 {
-    Csphere(0.05);
+    SphereBuffer(2.00, 2.0, 0.0, 0.0);
 
-    std::cout << sizeof(g_spherevertex_buffer_data) << std::endl;
-    std::cout << sizeof(g_vertex_buffer_data) << std::endl;
     // Dark blue background
     glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
 
@@ -273,29 +242,30 @@ void init(void)
 	//glEnable(GL_DEPTH_TEST);
 
 	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS); 
+	//glDepthFunc(GL_LESS); 
 }
 
 
 int main(int argc, char** argv)
 {
     if (!glfwInit()){
-        std::cout << "Initialization failed" <<std::endl; 
+        std::cout << "Initialization GLFW library failed!" <<std::endl; 
         return -1;
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    // Setting hint for glfwCreateWindow
+    glfwWindowHint(GLFW_SAMPLES                 , 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR   , 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR   , 0);
 
-    window = glfwCreateWindow(W, H, "My Title", NULL, NULL);
+    window = glfwCreateWindow(W, H, "Ghost SPH", NULL, NULL);
 
     if (!window){
-        std::cout << "Window or OpenGL context creation failer!" << std::endl;
+        std::cout << "Window or OpenGL context creation failed!" << std::endl;
         glfwTerminate();
         return -1;
     }
-
+    // Make the context of our window the main context on the current thread
     glfwMakeContextCurrent(window);
 
     if (glewInit() != GLEW_OK)
@@ -361,7 +331,7 @@ int main(int argc, char** argv)
 
     glGenBuffers(1, &spherebuffer);
     glBindBuffer(GL_ARRAY_BUFFER, spherebuffer);
-    glBufferData(GL_ARRAY_BUFFER, nV * (n + 1) * (n + 1) * sizeof(float),
+    glBufferData(GL_ARRAY_BUFFER, sphereSize * sizeof(float),
                                          g_spherevertex_buffer_data ,
                                          GL_STATIC_DRAW); 
 
@@ -369,7 +339,7 @@ int main(int argc, char** argv)
 
     glGenBuffers(1, &spherecolor_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, spherecolor_buffer);
-    glBufferData(GL_ARRAY_BUFFER, nV * (n + 1) * (n + 1) * sizeof(float),
+    glBufferData(GL_ARRAY_BUFFER, sphereSize * sizeof(float),
                                          g_spherecolor_buffer_data ,
                                          GL_STATIC_DRAW); 
 
@@ -500,7 +470,7 @@ int main(int argc, char** argv)
         // Starting from vertex 0; 3 vertices total -> 1 triangle
      
 
-        glDrawArrays(GL_TRIANGLES, 0, nV * (n + 1) * (n + 1));   
+        glDrawArrays(GL_TRIANGLES, 0, sphereSize);   
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
