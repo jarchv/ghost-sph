@@ -18,7 +18,8 @@ in vec3 LightDirection_cameraspace;
 float cosTheta;	
 
 // Values that stay constant for the whole mesh.
-uniform vec3 LightPosition_worldspace;
+uniform vec3  LightPosition_worldspace;
+uniform float Transparent;
 
 void main()
 {
@@ -42,8 +43,8 @@ void main()
     vec3 l = normalize( LightDirection_cameraspace );
 	// Cosine of the angle between the normal and the light direction, 
 	// clamped above 0
-	//  - light is at the vertical of the triangle -> 1
-	//  - light is perpendicular to the triangle -> 0
+	// - light is at the vertical of the triangle -> 1
+	// - light is perpendicular to the triangle -> 0
     // - light is behind the triangle -> 0
     
     cosTheta = dot(n, l);
@@ -68,7 +69,7 @@ void main()
 		// Specular : reflective highlight, like a mirror
         MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / (distance*distance);
     
-    color.a = 0.3;
+    color.a = Transparent;
 
     //color.rgb = sphereColors;
     //color.a   = color.a   + 1.0;

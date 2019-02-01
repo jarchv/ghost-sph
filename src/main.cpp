@@ -14,17 +14,25 @@ GLFWwindow* window;
 
 #define PI 3.14159
 
-int   n     = 20;
+// n: angles per theta/phi
+int   n     = 10;
+
 float posX  = 0.0;
 float posY  = 0.0;
 float posZ  = 0.0; 
 
-int nSphVtx = 18;
 
+
+int nSphVtx = 18;
 int sphereSize = nSphVtx * n * n;
 
 static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
 static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
+
+
+int num_particles  = 125;
+float *spherePos = new float[num_particles*3];
+
 
 void SphereBuffer(float radio, float x0, float y0, float z0){
     
@@ -216,6 +224,7 @@ static const GLfloat g_normal_buffer_data[] = {
     1.0f,  0.0f,  0.0f,
     1.0f,  0.0f,  0.0f,
     1.0f,  0.0f,  0.0f,
+
 //  Front 1
     0.0f,  0.0f,  1.0f,
     0.0f,  0.0f,  1.0f,
@@ -230,7 +239,7 @@ int H = 480;
 
 void init(void)
 {
-    SphereBuffer(2.00, 2.0, 0.0, 0.0);
+    SphereBuffer(0.1, 0.0, 3.0, 0.5);
 
     // Dark blue background
     glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
@@ -248,6 +257,7 @@ void init(void)
 
 int main(int argc, char** argv)
 {
+
     if (!glfwInit()){
         std::cout << "Initialization GLFW library failed!" <<std::endl; 
         return -1;
@@ -284,13 +294,8 @@ int main(int argc, char** argv)
     glfwPollEvents();
     glfwSetCursorPos(window, W/2, H/2);
 
-
-
-
     init();
 	
-    
-    
     GLuint VertexArrayID;
     glGenBuffers(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -344,7 +349,13 @@ int main(int argc, char** argv)
                                          GL_STATIC_DRAW); 
 
     glUseProgram(programID);
-    GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+    GLuint TransparentID = glGetUniformLocation(programID, "Transparent");
+    GLuint LightID       = glGetUniformLocation(programID, "LightPosition_worldspace");
+    
+        
+    GLuint MatrixID      = glGetUniformLocation(programID, "MVP");
+    GLuint ViewMatrixID  = glGetUniformLocation(programID, "V");
+    GLuint ModelMatrixID = glGetUniformLocation(programID, "M");     
 
 	// For speed computation
 	double lastTime  = glfwGetTime();
@@ -354,7 +365,15 @@ int main(int argc, char** argv)
     // Enable blending
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
+    float kf = 0.2;
+    for (int ie = 0; ie < num_particles; ie++)
+    {
+        spherePos[ie * 3 + 0] = kf * ((ie%25)%5);
+        spherePos[ie * 3 + 1] = kf * ((ie/25  ));
+        spherePos[ie * 3 + 2] = kf * ((ie%25)/5);
+    }
+
     do {
         double currentTime = glfwGetTime();
         double delta = currentTime - startTime;
@@ -368,8 +387,9 @@ int main(int argc, char** argv)
 			lastTime += 1.0;
             
         }
-        glClear(GL_COLOR_BUFFER_BIT);
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        //glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use our shader
         glUseProgram(programID);
@@ -379,11 +399,7 @@ int main(int argc, char** argv)
 		glm::mat4 ProjectionMatrix  = getProjectionMatrix();
 		glm::mat4 ViewMatrix        = getViewMatrix();
 		glm::mat4 ModelMatrix       = glm::mat4(1.0);
-        glm::mat4 MVP               = ProjectionMatrix * ViewMatrix * ModelMatrix;      
-          
-        GLuint MatrixID      = glGetUniformLocation(programID, "MVP");
-        GLuint ViewMatrixID  = glGetUniformLocation(programID, "V");
-        GLuint ModelMatrixID = glGetUniformLocation(programID, "M");     
+        glm::mat4 MVP               = ProjectionMatrix * ViewMatrix * ModelMatrix;   
         
 
         // Send our transformation to the currently bound shader, 
@@ -394,7 +410,7 @@ int main(int argc, char** argv)
 
 		glm::vec3 lightPos = glm::vec3(10,6,10);
         glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
-
+        glUniform1f(TransparentID,0.3);
         // 1st attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -420,9 +436,7 @@ int main(int argc, char** argv)
             (void*)0    // array buffer offset
         );
 
- 
-
-        // 3th attribute buffer : colors
+        // 3th attribute buffer : normal
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
         glVertexAttribPointer(
@@ -441,8 +455,13 @@ int main(int argc, char** argv)
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
 
+
+
         glUseProgram(programID);
-        // 4th attribute buffer : colors
+
+        glUniform1f(TransparentID,0.8);
+
+        // 1th attribute buffer : sphere
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, spherebuffer);
         glVertexAttribPointer(
@@ -454,7 +473,7 @@ int main(int argc, char** argv)
             (void*)0    // array buffer offset
         );
 
-        // 5th attribute buffer : colors
+        // 2th attribute buffer : colors
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, spherecolor_buffer);
         glVertexAttribPointer(
@@ -468,9 +487,18 @@ int main(int argc, char** argv)
 
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
-     
-
-        glDrawArrays(GL_TRIANGLES, 0, sphereSize);   
+        for(size_t i = 0; i < num_particles; i++)
+        {
+            ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3((float)spherePos[i*3 + 0],
+                                                                        (float)spherePos[i*3 + 1],
+                                                                        (float)spherePos[i*3 + 2]));
+            MVP               = ProjectionMatrix * ViewMatrix * ModelMatrix;   
+            glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+            glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+            glDrawArrays(GL_TRIANGLES, 0, sphereSize);   
+        
+        }
+        
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
@@ -487,6 +515,8 @@ int main(int argc, char** argv)
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &colorbuffer);
 	glDeleteBuffers(1, &normalbuffer);
+    glDeleteBuffers(1, &spherebuffer);
+    glDeleteBuffers(1, &spherecolor_buffer);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteProgram(programID);
     
