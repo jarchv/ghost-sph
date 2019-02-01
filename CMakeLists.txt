@@ -12,6 +12,9 @@ add_library(base
     src/common/controls.hpp
     src/common/loadshader.cpp
     src/common/loadshader.hpp
+
+    src/utils/sphere.cpp
+    src/utils/sphere.hpp
 )
 
 target_compile_features(base PUBLIC cxx_std_11)
