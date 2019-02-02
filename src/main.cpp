@@ -16,8 +16,10 @@ GLFWwindow* window;
 #include "utils/sampling.hpp"
 #include "utils/physics.hpp"
 
-int num_particles  = 125;
+const int num_particles  = 125;
 float *spherePos   = new float[num_particles*3];
+
+Particle ParticleSystem[num_particles];
 
 int W = 720;
 int H = 480;
@@ -166,7 +168,7 @@ int main(int argc, char** argv)
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    setInitialPosition(spherePos, num_particles, 0.2);
+    setInitialPosition(ParticleSystem, num_particles, 0.2);
     float fall = 0.0;
 
     do {
@@ -282,13 +284,18 @@ int main(int argc, char** argv)
 
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
-        collisions(spherePos, tSim, v0, num_particles, timeStep);
+        SimulatePhysics(ParticleSystem, tSim, v0, num_particles, timeStep);
 
         for(size_t i = 0; i < num_particles; i++)
         {
+            /*
             ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3((float)spherePos[i*3 + 0],
                                                                         (float)spherePos[i*3 + 1],
                                                                         (float)spherePos[i*3 + 2]));
+            */
+            ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3(ParticleSystem[i].position.x,
+                                                                        ParticleSystem[i].position.y,
+                                                                        ParticleSystem[i].position.z));
             MVP               = ProjectionMatrix * ViewMatrix * ModelMatrix;   
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);

@@ -1,14 +1,15 @@
-void collisions(float* spherePos, float&tSim, float& v0, int num_particles, float timeStep)
+#include "sphere.hpp"
+#include <glm/glm.hpp>
+
+void SimulatePhysics(Particle ParticleSystem[], float&tSim, float& v0, int num_particles, float timeStep)
 {   
-    float gravity = 9.80665;
+    glm::vec3 gravity = glm::vec3(0.0, -9.80665, 0.0);
 
-    for (int ie = 0; ie < num_particles; ie++)
+    for (int ip = 0; ip < num_particles; ip++)
     {
-        //spherePos[ie * 3 + 0] += v0 * timeStep - 0.5 * gravity * timeStep * timeStep ;
-        spherePos[ie * 3 + 1] += v0 * timeStep - 0.5 * gravity * timeStep * timeStep ;
-        //spherePos[ie * 3 + 2] += v0 * timeStep - 0.5 * gravity * timeStep * timeStep ;
-    }   
+        ParticleSystem[ip].position += ParticleSystem[ip].velocity * timeStep + gravity * timeStep * timeStep * 0.5f;
+        ParticleSystem[ip].velocity += timeStep * gravity;
+    }
 
-    v0   -= timeStep * gravity;
-    tSim += timeStep;    
+    tSim += timeStep;
 }

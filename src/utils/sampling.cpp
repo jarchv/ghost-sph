@@ -1,9 +1,14 @@
-void setInitialPosition(float* spherePos, int num_particles,float kf)
+#include <glm/glm.hpp>
+#include "sphere.hpp"
+
+void setInitialPosition(Particle ParticleSystem[], int num_particles,float kf)
 {
-    for (int ie = 0; ie < num_particles; ie++)
+    for (int ip = 0; ip < num_particles; ip++)
     {
-        spherePos[ie * 3 + 0] = kf * ((ie%25)%5);
-        spherePos[ie * 3 + 1] = kf * ((ie/25  ));
-        spherePos[ie * 3 + 2] = kf * ((ie%25)/5);
-    }   
+        ParticleSystem[ip].position.x = kf * ((ip%25)%5);
+        ParticleSystem[ip].position.y = kf * ((ip/25  ));
+        ParticleSystem[ip].position.z = kf * ((ip%25)/5);
+    }
 }
+
+

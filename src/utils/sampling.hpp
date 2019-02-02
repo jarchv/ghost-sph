@@ -1,3 +1,4 @@
 #include <iostream>
+#include "sphere.hpp"
 
-void setInitialPosition(float* spherePos, int num_particles,float kf);
+void setInitialPosition(Particle ParticleSystem[], int num_particles,float kf);
