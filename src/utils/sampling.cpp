@@ -8,6 +8,7 @@ void setInitialPosition(Particle ParticleSystem[], int num_particles,float kf)
         ParticleSystem[ip].position.x = kf * ((ip%25)%5);
         ParticleSystem[ip].position.y = kf * ((ip/25  ));
         ParticleSystem[ip].position.z = kf * ((ip%25)/5);
+        ParticleSystem[ip].velocity   = glm::vec3(0.0,2.0,0.0);
     }
 }
 
