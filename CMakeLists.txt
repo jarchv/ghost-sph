@@ -15,6 +15,12 @@ add_library(base
 
     src/utils/sphere.cpp
     src/utils/sphere.hpp
+    src/utils/sampling.cpp
+    src/utils/sampling.hpp
+    src/utils/physics.cpp
+    src/utils/physics.hpp
+        
+    src/utils/container.hpp
 )
 
 target_compile_features(base PUBLIC cxx_std_11)

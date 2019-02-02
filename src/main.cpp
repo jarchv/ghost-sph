@@ -12,151 +12,19 @@ GLFWwindow* window;
 #include "common/controls.hpp"
 
 #include "utils/sphere.hpp"
+#include "utils/container.hpp"
+#include "utils/sampling.hpp"
+#include "utils/physics.hpp"
 
 int num_particles  = 125;
-float *spherePos = new float[num_particles*3];
-
-static const GLfloat g_vertex_buffer_data[] = 
-{
-//  Floor
-    -2.0f, 0.0f,  0.0f,
-    -2.0f, 0.0f,  2.0f,
-     2.0f, 0.0f,  0.0f,
-
-     2.0f, 0.0f,  0.0f,
-    -2.0f, 0.0f,  2.0f,
-     2.0f, 0.0f,  2.0f,
-
-//  Front 0
-    -2.0f, 0.0f, 0.0f,
-     2.0f, 0.0f, 0.0f,
-     2.0f, 2.0f, 0.0f,
-
-     2.0f, 2.0f, 0.0f,
-    -2.0f, 2.0f, 0.0f,
-    -2.0f, 0.0f, 0.0f,
-
-//  Lateral 0
-     2.0f, 0.0f, 0.0f,
-     2.0f, 2.0f, 0.0f,
-     2.0f, 2.0f, 2.0f,
-
-     2.0f, 2.0f, 2.0f,
-     2.0f, 0.0f, 2.0f,
-     2.0f, 0.0f, 0.0f,
-
-//  Lateral 1
-    -2.0f, 0.0f, 0.0f,
-    -2.0f, 2.0f, 2.0f,
-    -2.0f, 2.0f, 0.0f,
-
-    -2.0f, 2.0f, 2.0f,
-    -2.0f, 0.0f, 0.0f,
-    -2.0f, 0.0f, 2.0f,
-
-
-//  Front 1
-    -2.0f, 0.0f, 2.0f,
-     2.0f, 0.0f, 2.0f,
-     2.0f, 2.0f, 2.0f,
-
-     2.0f, 2.0f, 2.0f,
-    -2.0f, 2.0f, 2.0f,
-    -2.0f, 0.0f, 2.0f,
-
-};
-
-static const GLfloat g_color_buffer_data[] = {
-
-//  Floor
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-
-//  Walls
-
-//  Front 0
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-
-//  Lateral 0
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-
-//  Lateral 1
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-
-//  Front 1
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-    0.6f,  0.6f,  0.6f,
-
-};
-
-static const GLfloat g_normal_buffer_data[] = {
-
-//  Floor
-    0.0f,  1.0f,  0.0f,
-    0.0f,  1.0f,  0.0f,
-    0.0f,  1.0f,  0.0f,
-
-    0.0f,  1.0f,  0.0f,
-    0.0f,  1.0f,  0.0f,
-    0.0f,  1.0f,  0.0f,
-//  Walls
-
-//  Front 0
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-//  Lateral 0
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-//  Lateral 1
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-    1.0f,  0.0f,  0.0f,
-
-//  Front 1
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-    0.0f,  0.0f,  1.0f,
-};
+float *spherePos   = new float[num_particles*3];
 
 int W = 720;
 int H = 480;
+
+float tSim     = 0.0;
+float v0       = 0.0;
+float timeStep = 0.005;
 
 void init(void)
 {
@@ -223,7 +91,7 @@ int main(int argc, char** argv)
     static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
     static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
     
-    SphereBuffer(0.1, 0.0, 3.0, 0.5, n, nSphVtx,    g_spherevertex_buffer_data, 
+    SphereBuffer(0.1, 0.0, 2.0, 0.5, n, nSphVtx,    g_spherevertex_buffer_data, 
                                                     g_spherecolor_buffer_data);
 
     std::cout << sphereSize <<std::endl;
@@ -297,17 +165,6 @@ int main(int argc, char** argv)
     // Enable blending
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    /*
-    float kf = 0.2;
-    for (int ie = 0; ie < num_particles; ie++)
-    {
-        spherePos[ie * 3 + 0] = kf * ((ie%25)%5);
-        spherePos[ie * 3 + 1] = kf * ((ie/25  ));
-        spherePos[ie * 3 + 2] = kf * ((ie%25)/5);
-    }
-    */
-
 
     setInitialPosition(spherePos, num_particles, 0.2);
     float fall = 0.0;
@@ -425,10 +282,12 @@ int main(int argc, char** argv)
 
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
+        collisions(spherePos, tSim, v0, num_particles, timeStep);
+
         for(size_t i = 0; i < num_particles; i++)
         {
             ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3((float)spherePos[i*3 + 0],
-                                                                        (float)spherePos[i*3 + 1]+fall,
+                                                                        (float)spherePos[i*3 + 1],
                                                                         (float)spherePos[i*3 + 2]));
             MVP               = ProjectionMatrix * ViewMatrix * ModelMatrix;   
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);

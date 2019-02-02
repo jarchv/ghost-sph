@@ -14,18 +14,10 @@ void SphereBuffer(  float   radio,
                     GLfloat* g_spherevertex_buffer_data,
                     GLfloat* g_spherecolor_buffer_data){
     
-
-
-    //int   n         = 10;
-    //int nSphVtx     = 18;
-    //int sphereSize  = nSphVtx * n * n;
 	float px, py, pz;
 	int i, j;
 	float phi   = 2 * PI / ((float)n);
 	float theta =     PI / ((float)n);
-
-    //g_spherevertex_buffer_data = new GLfloat[sphereSize];
-    //g_spherecolor_buffer_data  = new GLfloat[sphereSize];
 
 	for (i = 0; i < n; i++){
 		for (j = 0; j < n; j++) {
@@ -79,15 +71,4 @@ void SphereBuffer(  float   radio,
             }
 		}
 	}
-}
-
-
-void setInitialPosition(float* spherePos, int num_particles,float kf)
-{
-    for (int ie = 0; ie < num_particles; ie++)
-    {
-        spherePos[ie * 3 + 0] = kf * ((ie%25)%5);
-        spherePos[ie * 3 + 1] = kf * ((ie/25  ));
-        spherePos[ie * 3 + 2] = kf * ((ie%25)/5);
-    }   
 }
