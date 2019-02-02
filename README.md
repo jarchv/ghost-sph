@@ -1,1 +1,1 @@
-# OpenGL Tutorial
+# GHost SPH
