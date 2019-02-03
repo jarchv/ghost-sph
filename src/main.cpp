@@ -37,7 +37,7 @@ void init(void)
 
     // Descartar los triangulos cuya normal no esta hacia la camara
     glDisable(GL_CULL_FACE);
-    
+        
 	// Enable depth test
 	//glEnable(GL_DEPTH_TEST);
 
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 
     setContainer(FluidContainer);
 
-    setInitialPosition(ParticleSystem, num_particles, 0.2);
+    setInitialPosition(ParticleSystem, num_particles, 0.3);
 
     do {
         double currentTime = glfwGetTime();
