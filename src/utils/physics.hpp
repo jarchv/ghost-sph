@@ -6,4 +6,5 @@ void SimulatePhysics(   Particle ParticleSystem[],
                         float& tSim,
                         float& v0,
                         int num_particles,
-                        float timeStep);
+                        float timeStep,
+                        float Radius);

@@ -17,7 +17,7 @@ GLFWwindow* window;
 #include "utils/physics.hpp"
 #include "utils/container.hpp"
 
-const int num_particles  = 125;
+const int num_particles  = 50;
 float *spherePos         = new float[num_particles*3];
 
 Particle  ParticleSystem[num_particles];
@@ -29,6 +29,7 @@ int H = 480;
 float tSim     = 0.0;
 float v0       = 0.0;
 float timeStep = 0.005;
+float Radius   = 0.1;
 
 void init(void)
 {
@@ -95,7 +96,7 @@ int main(int argc, char** argv)
     static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
     static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
     
-    SphereBuffer(0.1, n, nSphVtx, g_spherevertex_buffer_data, 
+    SphereBuffer(Radius, n, nSphVtx, g_spherevertex_buffer_data, 
                                   g_spherecolor_buffer_data);
 
 
@@ -289,7 +290,7 @@ int main(int argc, char** argv)
 
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
-        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep);
+        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, Radius);
 
         for(size_t i = 0; i < num_particles; i++)
         {

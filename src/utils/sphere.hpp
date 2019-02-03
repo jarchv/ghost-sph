@@ -9,6 +9,7 @@ struct Particle{
     glm::vec3 position;
     glm::vec3 velocity;
     glm::vec3 force;
+    float     density;
 };
 
 #endif
