@@ -7,9 +7,6 @@
 #define PI 3.14159
 
 void SphereBuffer(  float   radio, 
-                    float   x0, 
-                    float   y0, 
-                    float   z0,
                     int     n,
                     int     nSphVtx,
                     GLfloat* g_spherevertex_buffer_data,
@@ -40,9 +37,9 @@ void SphereBuffer(  float   radio,
                 py = sin(PI - theta*(j + dj))*sin(phi*(i + di))*radio;
                 px = sin(PI - theta*(j + dj))*cos(phi*(i + di))*radio;          
 
-                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u    ] = x0 + px;
-                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 1] = y0 + py;
-                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 2] = z0 + pz;      
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u    ] = px;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 1] = py;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 2] = pz;      
             }
 
             di = 0;
@@ -59,9 +56,9 @@ void SphereBuffer(  float   radio,
                 py = sin(PI - theta*(j + dj))*sin(phi*(i + di))*radio;
                 px = sin(PI - theta*(j + dj))*cos(phi*(i + di))*radio;          
 
-                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u    ] = x0 + px;
-                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 1] = y0 + py;
-                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 2] = z0 + pz;      
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u    ] = px;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 1] = py;
+                g_spherevertex_buffer_data[(i * n + j)*nSphVtx + u + 2] = pz;      
             }
 
             for(int k = 0; k < nSphVtx/3; k++)

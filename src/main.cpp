@@ -12,14 +12,16 @@ GLFWwindow* window;
 #include "common/controls.hpp"
 
 #include "utils/sphere.hpp"
-#include "utils/container.hpp"
+
 #include "utils/sampling.hpp"
 #include "utils/physics.hpp"
+#include "utils/container.hpp"
 
 const int num_particles  = 125;
-float *spherePos   = new float[num_particles*3];
+float *spherePos         = new float[num_particles*3];
 
-Particle ParticleSystem[num_particles];
+Particle  ParticleSystem[num_particles];
+Container FluidContainer[5];
 
 int W = 720;
 int H = 480;
@@ -93,8 +95,10 @@ int main(int argc, char** argv)
     static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
     static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
     
-    SphereBuffer(0.1, 0.0, 2.0, 0.5, n, nSphVtx,    g_spherevertex_buffer_data, 
-                                                    g_spherecolor_buffer_data);
+    SphereBuffer(0.1, n, nSphVtx, g_spherevertex_buffer_data, 
+                                  g_spherecolor_buffer_data);
+
+
 
     std::cout << sphereSize <<std::endl;
     std::cout << g_spherevertex_buffer_data[0] <<std::endl;
@@ -168,8 +172,9 @@ int main(int argc, char** argv)
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    setContainer(FluidContainer);
+
     setInitialPosition(ParticleSystem, num_particles, 0.2);
-    float fall = 0.0;
 
     do {
         double currentTime = glfwGetTime();
@@ -284,13 +289,13 @@ int main(int argc, char** argv)
 
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
-        SimulatePhysics(ParticleSystem, tSim, v0, num_particles, timeStep);
+        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep);
 
         for(size_t i = 0; i < num_particles; i++)
         {
             /*
             ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3((float)spherePos[i*3 + 0],
-                                                                        (float)spherePos[i*3 + 1],
+                                          s                              (float)spherePos[i*3 + 1],
                                                                         (float)spherePos[i*3 + 2]));
             */
             ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3(ParticleSystem[i].position.x,
@@ -310,8 +315,7 @@ int main(int argc, char** argv)
         // Swap buffer
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-        fall-= 0.01;
+        
     }
 
     while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&

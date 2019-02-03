@@ -1,4 +1,8 @@
 #include <GL/glew.h>
+#include <glm/glm.hpp>
+
+#ifndef CONTAINER
+#define CONTAINER
 
 static const GLfloat g_vertex_buffer_data[] = 
 {
@@ -138,3 +142,13 @@ static const GLfloat g_normal_buffer_data[] = {
     0.0f,  0.0f,  1.0f,
     0.0f,  0.0f,  1.0f,
 };
+
+struct Container
+{
+     glm::vec3 center;
+     glm::vec3 normal;
+};
+
+#endif
+
+void setContainer(Container FluidContainer[]);
