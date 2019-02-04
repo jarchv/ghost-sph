@@ -3,6 +3,31 @@
 #include "container.hpp"
 
 #define PIV 3.14159
+
+/*
+* Navier-Stokes equations:
+* =======================
+* 
+* dv/dt = (1 / density) * [- grad(p) + mu * grad**2(v) + f]
+*
+* dv/dt = (1 / density) * [ presure + viscocity + external force]
+*
+* external foce = gravity + others
+* 
+* Pressure : fuilds move higher to lower pressure, so to compute it we
+*            will use the equation of state:
+*
+*       pV = nRT
+*       p  = nRT * (1 / V)
+*       p  = k * (density_f - density_0)
+*
+*       ** Pressure wants to equalize the density **
+* 
+* 
+*  
+*/
+
+
 /*
 * Schoenberg (1946) B-Spline:
 * ===========================

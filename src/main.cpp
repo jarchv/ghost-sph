@@ -294,11 +294,6 @@ int main(int argc, char** argv)
 
         for(size_t i = 0; i < num_particles; i++)
         {
-            /*
-            ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3((float)spherePos[i*3 + 0],
-                                          s                              (float)spherePos[i*3 + 1],
-                                                                        (float)spherePos[i*3 + 2]));
-            */
             ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3(ParticleSystem[i].position.x,
                                                                         ParticleSystem[i].position.y,
                                                                         ParticleSystem[i].position.z));
