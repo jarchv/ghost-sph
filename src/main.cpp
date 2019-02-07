@@ -17,7 +17,9 @@ GLFWwindow* window;
 #include "utils/physics.hpp"
 #include "utils/container.hpp"
 
-const int num_particles  = 125;
+
+const int LCUBE          = 6;
+const int num_particles  = LCUBE * LCUBE * LCUBE;
 float *spherePos         = new float[num_particles*3];
 
 Particle  ParticleSystem[num_particles];
@@ -26,11 +28,11 @@ Container FluidContainer[5];
 int W = 720;
 int H = 480;
 
-float tSim     = 0.0;
-float v0       = 0.0;
-float timeStep = 0.005;
-float Radius   = 0.1;
-float SphereDist  = 0.2;
+float tSim        = 0.0;
+float v0          = 0.0;
+float timeStep    = 0.005;
+float Radius      = 0.04;
+float SphereDist  = 0.1;
 
 void init(void)
 {
@@ -176,7 +178,7 @@ int main(int argc, char** argv)
 
     setContainer(FluidContainer);
 
-    setInitialPosition(ParticleSystem, num_particles, SphereDist);
+    setInitialPosition(ParticleSystem, num_particles, LCUBE, SphereDist);
 
     do {
         double currentTime = glfwGetTime();

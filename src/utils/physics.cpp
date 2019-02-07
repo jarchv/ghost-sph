@@ -10,23 +10,9 @@
 * 
 * dv/dt = (1 / density) * [- grad(p) + mu * grad**2(v) + f]
 *
-* dv/dt = (1 / density) * [ presure + viscocity + external force]
+* dv/dt = (1 / density) * [ presure + viscosity + external force]
 *
-* external foce = gravity + others
-* 
-* Pressure : fuilds move higher to lower pressure, so to compute it we
-*            will use the equation of state:
-*
-*       pV = nRT
-*       p  = nRT * (1 / V)
-*       p  = k * (density_f - density_0)
-*
-*       ** Pressure wants to equalize the density **
-* 
-* 
-*   
 */
-
 
 /*
 * Schoenberg (1946) B-Spline:
@@ -72,18 +58,18 @@ void  ForceEstimator(Particle ParticleSystem[], int num_particles, float smoothi
     
     glm::vec3 delta;
 
-    float K  = 100000.0f;
-    float MU = 0.0002f;
+    float K  = 500.0f;
+    float MU = 0.000001f;
     float pressure_factor;
-    glm::vec3 viscocity_factor;
+    glm::vec3 viscosity_factor;
 
     glm::vec3 pressure_force;
-    glm::vec3 viscocity_force;
+    glm::vec3 viscosity_force;
     for(int ip = 0; ip < num_particles; ip++)
     {
         float i_density = ParticleSystem[ip].density;
         pressure_force  = glm::vec3(0.0, 0.0, 0.0);
-        viscocity_force  = glm::vec3(0.0, 0.0, 0.0);
+        viscosity_force  = glm::vec3(0.0, 0.0, 0.0);
 
         i_pos       = ParticleSystem[ip].position;
         //i_pressure  = (ParticleSystem[ip].density - ParticleSystem[ip].density0) * K;
@@ -103,23 +89,32 @@ void  ForceEstimator(Particle ParticleSystem[], int num_particles, float smoothi
                 //j_pressure  = (ParticleSystem[jp].density - ParticleSystem[jp].density0) * K;
                 j_pressure  = K * (pow(ParticleSystem[jp].density/ParticleSystem[jp].density0, 7) - 1);
                 delta = i_pos - j_pos;
-
-                // sample implementation value: pi/roi2 + pj/roj2
-
+                
+                /*
+                * Pressure:
+                * =========
+                * 
+                *   Pressure_Force = -mi * sum(mj * (pj/rhoj**2 + pi/rhoi**2)) * Grad(W(delta))  
+                * 
+                */
                 pressure_factor   = - MASS * MASS * ParticleSystem[ip].density;
                 pressure_factor  *= (i_pressure / (i_density * i_density) + 
                                     j_pressure / (ParticleSystem[jp].density * ParticleSystem[jp].density) );
                 pressure_force   += pressure_factor * KernelGrad(delta, smoothing_scale,h_6);
 
+                /*
+                * Viscosity
+                * =========
+                * 
+                *  Viscosity_Force = - mu * sum((mj/rhoj)* (vj - vi) * Laplacian(W(delta)))
+                * 
+                */
 
-                viscocity_factor  = MU * MASS * (ParticleSystem[jp].velocity - ParticleSystem[ip].velocity) / ParticleSystem[jp].density;
-                viscocity_force  += viscocity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
+                viscosity_factor  = MU * (MASS / ParticleSystem[jp].density) * (ParticleSystem[jp].velocity - ParticleSystem[ip].velocity);
+                viscosity_force  += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
             }
         }
-        //std::cout << "i : " << ip <<" | before : " << ParticleSystem[ip].force.x << ", pressure : " << pressure_force.x << std::endl;
-        //std::cout << "i : " << ip <<" | before : " << ParticleSystem[ip].force.y << ", pressure : " << pressure_force.y << std::endl;
-        //std::cout << "i : " << ip <<" | before : " << ParticleSystem[ip].force.z << ", pressure : " << pressure_force.z << std::endl;
-        ParticleSystem[ip].force += pressure_force + viscocity_force;
+        ParticleSystem[ip].force += pressure_force + viscosity_force;
     }   
 }
 float KernelFunction(float delta, float h, float h_9)
@@ -173,7 +168,7 @@ void ContainerCollisions(Particle  ParticleSystem[],
                          float RadiusMask, 
                          float MASS)
 {
-    float K     = 1.0f;    // CONSTANT OF SPRING
+    float K     = 10.0f;    // CONSTANT OF SPRING
 
     glm::vec3 gravity_force  = glm::vec3(0.0, -9.80665, 0.0) * MASS;
 
@@ -187,7 +182,10 @@ void ContainerCollisions(Particle  ParticleSystem[],
                        
             if (normalDist < RadiusMask)
             {
-                ParticleSystem[ip].force += (RadiusMask - normalDist) * FluidContainer[ic].normal * K;
+                //ParticleSystem[ip].force += (RadiusMask - normalDist) * FluidContainer[ic].normal * K;
+                ParticleSystem[ip].velocity  = ParticleSystem[ip].velocity * 0.5f;
+                float v_comp_normal          = glm::dot(ParticleSystem[ip].velocity, FluidContainer[ic].normal);
+                ParticleSystem[ip].velocity += FluidContainer[ic].normal * abs(v_comp_normal) * 1.7f;
             }
         }
     }    
@@ -205,7 +203,7 @@ void SimulatePhysics(Particle ParticleSystem[],
     float MASS            = 0.001f;   // MASS OF A DROP = 50e-6 kg (Set 20 drops)
     float Mask            = 0.02;
     float RadiusMask      = Radius + Mask;
-    float smoothing_scale = 0.3;
+    float smoothing_scale = RadiusMask * 3;
     float VOLUME          = (4.0 / 3.0) * PIV * RadiusMask * RadiusMask * RadiusMask;
 
     ContainerCollisions(ParticleSystem, FluidContainer, num_particles, RadiusMask, MASS);
@@ -215,18 +213,10 @@ void SimulatePhysics(Particle ParticleSystem[],
     for (int ip = 0; ip < num_particles; ip++)
     {
         aceleration  = ParticleSystem[ip].force * (1 /  MASS);
-        aceleration -= glm::normalize(ParticleSystem[ip].velocity) * 3.5f;
-        //std::cout << glm::normalize(ParticleSystem[ip].velocity).x * 0.1f << std::endl;
-        //std::cout << glm::normalize(ParticleSystem[ip].velocity).y * 0.1f << std::endl;
-        //std::cout << glm::normalize(ParticleSystem[ip].velocity).z * 0.1f << std::endl;
-        //break;
+        aceleration -= glm::normalize(ParticleSystem[ip].velocity) * 0.0f; //Air Decelerations
         aceleration *= 0.8;
         ParticleSystem[ip].position += ParticleSystem[ip].velocity * timeStep + aceleration * timeStep * timeStep * 0.5f;
         ParticleSystem[ip].velocity += timeStep * aceleration;
-        //if (ParticleSystem[ip].density > 0)
-        //{
-        //    std::cout << "Density (" << ip << ") = " << ParticleSystem[ip].density << ", MASS  = " << ParticleSystem[ip].density * VOLUME <<std::endl;
-        //}
     }
 
     tSim += timeStep;
