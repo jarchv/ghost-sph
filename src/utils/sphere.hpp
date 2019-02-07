@@ -9,7 +9,9 @@ struct Particle{
     glm::vec3 position;
     glm::vec3 velocity;
     glm::vec3 force;
-    float     density;
+    float     density0 = 997.0;
+    float     density  = 997.0;
+    float     pressure;
 };
 
 #endif
