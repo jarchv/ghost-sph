@@ -169,23 +169,30 @@ void ContainerCollisions(Particle  ParticleSystem[],
                          float MASS)
 {
     float K     = 10.0f;    // CONSTANT OF SPRING
-
+    float normalDist;
+    float v_comp_normal;
     glm::vec3 gravity_force  = glm::vec3(0.0, -9.80665, 0.0) * MASS;
-
+    //glm::vec3 gravity_force  = glm::vec3(0.0, 0, 0.0) * MASS;
     for (int ip = 0; ip < num_particles; ip++)
     {
         ParticleSystem[ip].force = gravity_force;
         for (int ic = 0; ic < 5; ic ++)
         {
             glm::vec3 delta  = ParticleSystem[ip].position - FluidContainer[ic].center;
-            float normalDist = glm::dot(delta, FluidContainer[ic].normal);
+            normalDist = abs(glm::dot(delta, FluidContainer[ic].normal));
                        
             if (normalDist < RadiusMask)
             {
-                //ParticleSystem[ip].force += (RadiusMask - normalDist) * FluidContainer[ic].normal * K;
+                // Ghost Particles in Solids
                 ParticleSystem[ip].velocity  = ParticleSystem[ip].velocity * 0.5f;
-                float v_comp_normal          = glm::dot(ParticleSystem[ip].velocity, FluidContainer[ic].normal);
-                ParticleSystem[ip].velocity += FluidContainer[ic].normal * abs(v_comp_normal) * 1.7f;
+                
+                v_comp_normal                = glm::dot(ParticleSystem[ip].velocity, FluidContainer[ic].normal);
+
+                if (v_comp_normal < 0)
+                {
+                    ParticleSystem[ip].velocity -= FluidContainer[ic].normal * v_comp_normal * 1.0f;
+                    //std::cout << ParticleSystem[ip].velocity.y << std::endl;
+                }   
             }
         }
     }    
@@ -200,8 +207,8 @@ void SimulatePhysics(Particle ParticleSystem[],
 {   
     glm::vec3 aceleration;
 
-    float MASS            = 0.001f;   // MASS OF A DROP = 50e-6 kg (Set 20 drops)
-    float Mask            = 0.02;
+    float MASS            = 0.001f;          // MASS OF A DROP = 50e-6 kg (Set 20 drops)
+    float Mask            = Radius * 0.5;    
     float RadiusMask      = Radius + Mask;
     float smoothing_scale = RadiusMask * 3;
     float VOLUME          = (4.0 / 3.0) * PIV * RadiusMask * RadiusMask * RadiusMask;
@@ -213,8 +220,6 @@ void SimulatePhysics(Particle ParticleSystem[],
     for (int ip = 0; ip < num_particles; ip++)
     {
         aceleration  = ParticleSystem[ip].force * (1 /  MASS);
-        aceleration -= glm::normalize(ParticleSystem[ip].velocity) * 0.0f; //Air Decelerations
-        aceleration *= 0.8;
         ParticleSystem[ip].position += ParticleSystem[ip].velocity * timeStep + aceleration * timeStep * timeStep * 0.5f;
         ParticleSystem[ip].velocity += timeStep * aceleration;
     }

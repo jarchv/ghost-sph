@@ -18,7 +18,7 @@ GLFWwindow* window;
 #include "utils/container.hpp"
 
 
-const int LCUBE          = 6;
+const int LCUBE          = 8;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
 float *spherePos         = new float[num_particles*3];
 
@@ -98,11 +98,15 @@ int main(int argc, char** argv)
 
     static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
     static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
+    static GLfloat *g_spherenormal_buffer_data = new GLfloat[sphereSize];
     
     SphereBuffer(Radius, n, nSphVtx, g_spherevertex_buffer_data, 
                                   g_spherecolor_buffer_data);
 
 
+    SetSphereNormals(   g_spherevertex_buffer_data, 
+                        g_spherenormal_buffer_data,
+                        n);
 
     std::cout << sphereSize <<std::endl;
     std::cout << g_spherevertex_buffer_data[0] <<std::endl;
@@ -157,6 +161,14 @@ int main(int argc, char** argv)
     glBufferData(GL_ARRAY_BUFFER, sphereSize * sizeof(float),
                                          g_spherecolor_buffer_data ,
                                          GL_STATIC_DRAW); 
+
+    GLuint spherenormal_buffer;
+
+    glGenBuffers(1, &spherenormal_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, spherenormal_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_spherenormal_buffer_data),
+                                         g_spherenormal_buffer_data ,
+                                         GL_STATIC_DRAW);   
 
     glUseProgram(programID);
     GLuint TransparentID = glGetUniformLocation(programID, "Transparent");
@@ -265,7 +277,7 @@ int main(int argc, char** argv)
 
         glUseProgram(programID);
 
-        glUniform1f(TransparentID,0.8);
+        glUniform1f(TransparentID,1.0);
 
         // 1th attribute buffer : sphere
         glEnableVertexAttribArray(0);
@@ -291,6 +303,17 @@ int main(int argc, char** argv)
             (void*)0    // array buffer offset
         );
 
+        // 3th attribute buffer : colors
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, spherenormal_buffer);
+        glVertexAttribPointer(
+            2,          // attibute 2, must match the layout in the shader
+            3,          // size
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalizerd?
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
         SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, Radius);

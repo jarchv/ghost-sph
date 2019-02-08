@@ -20,3 +20,7 @@ void SphereBuffer(  float radio,
                     int   nSphVtx,
                     GLfloat* g_spherevertex_buffer_data,
                     GLfloat* g_spherecolor_buffer_data);
+                
+void SetSphereNormals(  GLfloat* g_spherevertex_buffer_data,
+                        GLfloat* g_spherenormal_buffer_data,
+                        int n);
