@@ -171,8 +171,9 @@ void ContainerCollisions(Particle  ParticleSystem[],
     float K     = 10.0f;    // CONSTANT OF SPRING
     float normalDist;
     float v_comp_normal;
-    glm::vec3 gravity_force  = glm::vec3(0.0, -9.80665, 0.0) * MASS;
-    //glm::vec3 gravity_force  = glm::vec3(0.0, 0, 0.0) * MASS;
+    //glm::vec3 gravity_force  = glm::vec3(0.0, -9.80665, 0.0) * MASS;
+    glm::vec3 gravity_force  = glm::vec3(0.0, 0, 0.0) * MASS;
+    
     for (int ip = 0; ip < num_particles; ip++)
     {
         ParticleSystem[ip].force = gravity_force;

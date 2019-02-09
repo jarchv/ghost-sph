@@ -18,9 +18,8 @@ GLFWwindow* window;
 #include "utils/container.hpp"
 
 
-const int LCUBE          = 8;
+const int LCUBE          = 1;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
-float *spherePos         = new float[num_particles*3];
 
 Particle  ParticleSystem[num_particles];
 Container FluidContainer[5];
@@ -31,7 +30,7 @@ int H = 480;
 float tSim        = 0.0;
 float v0          = 0.0;
 float timeStep    = 0.005;
-float Radius      = 0.04;
+float Radius      = 0.4;
 float SphereDist  = 0.1;
 
 void init(void)
@@ -40,13 +39,13 @@ void init(void)
     glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
 
     // Descartar los triangulos cuya normal no esta hacia la camara
-    glDisable(GL_CULL_FACE);
+    //glDisable(GL_CULL_FACE);
         
 	// Enable depth test
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	// Accept fragment if it closer to the camera than the former one
-	//glDepthFunc(GL_LESS); 
+	glDepthFunc(GL_LESS); 
 }
 
 
@@ -92,7 +91,7 @@ int main(int argc, char** argv)
     init();
 
     // n: angles per theta/phi
-    int n           = 10;
+    int n           = 20;
     int nSphVtx     = 18;
     int sphereSize  = nSphVtx * n * n;
 
@@ -166,7 +165,7 @@ int main(int argc, char** argv)
 
     glGenBuffers(1, &spherenormal_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, spherenormal_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_spherenormal_buffer_data),
+    glBufferData(GL_ARRAY_BUFFER, sphereSize * sizeof(float),
                                          g_spherenormal_buffer_data ,
                                          GL_STATIC_DRAW);   
 
@@ -227,8 +226,12 @@ int main(int argc, char** argv)
         glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 
 		glm::vec3 lightPos = glm::vec3(10,6,10);
+        
+        
         glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
-        glUniform1f(TransparentID,0.3);
+        
+        
+        glUniform1f(TransparentID,1.0);
         // 1st attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -272,9 +275,7 @@ int main(int argc, char** argv)
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
-
-
-
+        glClear(GL_DEPTH_BUFFER_BIT);
         glUseProgram(programID);
 
         glUniform1f(TransparentID,1.0);
@@ -304,6 +305,7 @@ int main(int argc, char** argv)
         );
 
         // 3th attribute buffer : colors
+        
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, spherenormal_buffer);
         glVertexAttribPointer(
@@ -314,9 +316,11 @@ int main(int argc, char** argv)
             0,          // stride
             (void*)0    // array buffer offset
         );
+        
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
-        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, Radius);
+        
+        //SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, Radius);
 
         for(size_t i = 0; i < num_particles; i++)
         {
@@ -325,8 +329,9 @@ int main(int argc, char** argv)
                                                                         ParticleSystem[i].position.z));
             MVP               = ProjectionMatrix * ViewMatrix * ModelMatrix;   
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+            glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
             glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-            glDrawArrays(GL_TRIANGLES, 0, sphereSize);   
+            glDrawArrays(GL_TRIANGLES, 0, sphereSize/3 );   
         
         }
         

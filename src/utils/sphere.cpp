@@ -8,10 +8,10 @@
 
 glm::vec3 getNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c)
 {
-    glm::vec3 norm = glm::normalize(glm::cross(c - b, a - b));
+    glm::vec3 norm = glm::normalize(glm::cross(b - a,c - a));
     
-    if(norm.y < 0) // or whatever direction up is
-        norm = -norm; 
+    //if(norm.y < 0) // or whatever direction up is
+    //    norm = -norm; 
     return norm;
 }
 
@@ -24,32 +24,34 @@ void SetSphereNormals(  GLfloat* g_spherevertex_buffer_data,
     glm::vec3 c;
     glm::vec3 normal;
 
-    int nT = n * n/9;
-
-    for (int i = 0; i < n * n * 2; i++)
+    for (int i = 0; i < n * n * 18; i+=9)
     {
-        a = glm::vec3(  g_spherevertex_buffer_data[(i*9+0)%9],
-                        g_spherevertex_buffer_data[(i*9+1)%9],
-                        g_spherevertex_buffer_data[(i*9+2)%9]);
+        a = glm::vec3(  g_spherevertex_buffer_data[i+0],
+                        g_spherevertex_buffer_data[i+1],
+                        g_spherevertex_buffer_data[i+2]);
 
-        b = glm::vec3(  g_spherevertex_buffer_data[(i*9+3)%9],
-                        g_spherevertex_buffer_data[(i*9+4)%9],
-                        g_spherevertex_buffer_data[(i*9+5)%9]);
-        c = glm::vec3(  g_spherevertex_buffer_data[(i*9+6)%9],
-                        g_spherevertex_buffer_data[(i*9+7)%9],
-                        g_spherevertex_buffer_data[(i*9+8)%9]);
+        b = glm::vec3(  g_spherevertex_buffer_data[i+3],
+                        g_spherevertex_buffer_data[i+4],
+                        g_spherevertex_buffer_data[i+5]);
+        c = glm::vec3(  g_spherevertex_buffer_data[i+6],
+                        g_spherevertex_buffer_data[i+7],
+                        g_spherevertex_buffer_data[i+8]);
 
         normal = getNormal(a,b,c);
 
-        g_spherenormal_buffer_data[(i*9+0)%9] = normal.x;
-        g_spherenormal_buffer_data[(i*9+1)%9] = normal.y;
-        g_spherenormal_buffer_data[(i*9+2)%9] = normal.z;
-        g_spherenormal_buffer_data[(i*9+3)%9] = normal.x;
-        g_spherenormal_buffer_data[(i*9+4)%9] = normal.y;
-        g_spherenormal_buffer_data[(i*9+5)%9] = normal.z;
-        g_spherenormal_buffer_data[(i*9+6)%9] = normal.x;
-        g_spherenormal_buffer_data[(i*9+7)%9] = normal.y;
-        g_spherenormal_buffer_data[(i*9+8)%9] = normal.z;
+        g_spherenormal_buffer_data[i+0] = normal.x;
+        g_spherenormal_buffer_data[i+1] = normal.y;
+        g_spherenormal_buffer_data[i+2] = normal.z;
+        g_spherenormal_buffer_data[i+3] = normal.x;
+        g_spherenormal_buffer_data[i+4] = normal.y;
+        g_spherenormal_buffer_data[i+5] = normal.z;
+        g_spherenormal_buffer_data[i+6] = normal.x;
+        g_spherenormal_buffer_data[i+7] = normal.y;
+        g_spherenormal_buffer_data[i+8] = normal.z;
+
+        std::cout << "1 : " << normal.x << std::endl;
+        std::cout << "2 : " << normal.y << std::endl;
+        std::cout << "3 : " << normal.z << std::endl;
     }  
 }
 
