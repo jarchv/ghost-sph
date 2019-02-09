@@ -1,6 +1,7 @@
 #include "sphere.hpp"
 #include <glm/glm.hpp>
 #include "container.hpp"
+#include <vector>
 
 #define PIV 3.14159
 
@@ -22,10 +23,7 @@
 
 float KernelLaplacian(glm::vec3 delta, float h, float h_6)
 {
-    
-
     float r = glm::length(delta);
-    
     return  (45.0 / (PIV * h_6 )) * (h - r);
 }
 
@@ -34,132 +32,53 @@ glm::vec3 KernelGrad(glm::vec3 delta, float h, float h_6)
     // Gradient spinky kernel
 
     float r = glm::length(delta);
-    if (r >= 0 && r <= h)
-    {
-        float factor = (45.0 / (PIV * h_6)) * (h - r) * (h - r);
-        return  - factor * glm::normalize(delta);
-    }
-    else 
-    {   
-        return glm::vec3(0.0,0.0,0.0);
-    }
-    
+    float factor = (45.0 / (PIV * h_6)) * (h - r) * (h - r);
+    return  - factor * glm::normalize(delta);   
 }
-void  ForceEstimator(Particle ParticleSystem[], int num_particles, float smoothing_scale, float MASS)
-{
-    float h_6 = smoothing_scale * smoothing_scale * smoothing_scale * 
-                smoothing_scale * smoothing_scale * smoothing_scale;
-    
-    float i_pressure;
-    float j_pressure;
 
-    glm::vec3 i_pos;
-    glm::vec3 j_pos;
-    
-    glm::vec3 delta;
-
-    float K  = 500.0f;
-    float MU = 0.000001f;
-    float pressure_factor;
-    glm::vec3 viscosity_factor;
-
-    glm::vec3 pressure_force;
-    glm::vec3 viscosity_force;
-    for(int ip = 0; ip < num_particles; ip++)
-    {
-        float i_density = ParticleSystem[ip].density;
-        pressure_force  = glm::vec3(0.0, 0.0, 0.0);
-        viscosity_force  = glm::vec3(0.0, 0.0, 0.0);
-
-        i_pos       = ParticleSystem[ip].position;
-        //i_pressure  = (ParticleSystem[ip].density - ParticleSystem[ip].density0) * K;
-
-        /*
-        * Incompressibility:
-        * =================
-        * 
-        *  Computing pressure from density using the Tait equation
-        */
-        i_pressure  = K * (pow(ParticleSystem[ip].density/ParticleSystem[ip].density0, 7) - 1);
-        for(int jp = 0; jp < num_particles; jp++)
-        {
-            if (ip != jp)
-            {
-                j_pos       = ParticleSystem[jp].position;       
-                //j_pressure  = (ParticleSystem[jp].density - ParticleSystem[jp].density0) * K;
-                j_pressure  = K * (pow(ParticleSystem[jp].density/ParticleSystem[jp].density0, 7) - 1);
-                delta = i_pos - j_pos;
-                
-                /*
-                * Pressure:
-                * =========
-                * 
-                *   Pressure_Force = -mi * sum(mj * (pj/rhoj**2 + pi/rhoi**2)) * Grad(W(delta))  
-                * 
-                */
-                pressure_factor   = - MASS * MASS * ParticleSystem[ip].density;
-                pressure_factor  *= (i_pressure / (i_density * i_density) + 
-                                    j_pressure / (ParticleSystem[jp].density * ParticleSystem[jp].density) );
-                pressure_force   += pressure_factor * KernelGrad(delta, smoothing_scale,h_6);
-
-                /*
-                * Viscosity
-                * =========
-                * 
-                *  Viscosity_Force = - mu * sum((mj/rhoj)* (vj - vi) * Laplacian(W(delta)))
-                * 
-                */
-
-                viscosity_factor  = MU * (MASS / ParticleSystem[jp].density) * (ParticleSystem[jp].velocity - ParticleSystem[ip].velocity);
-                viscosity_force  += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
-            }
-        }
-        ParticleSystem[ip].force += pressure_force + viscosity_force;
-    }   
-}
 float KernelFunction(float delta, float h, float h_9)
 {
     // Poly6 Kernel
     
-
-    if (delta >= 0 && delta <= h)
-    {
-        return (365.0 / (64.0 * PIV * h_9)) * (h * h - delta * delta) * 
-                                              (h * h - delta * delta) * 
-                                              (h * h - delta * delta);
-    }
-    else 
-    {   
-        return 0.0;
-    }
-    
+    return (365.0 / (64.0 * PIV * h_9)) * (h * h - delta * delta) * 
+                                          (h * h - delta * delta) * 
+                                          (h * h - delta * delta);
 }
-void DensityEstimator(Particle ParticleSystem[], int num_particles, float smoothing_scale, float MASS)
+
+void AccumulateForces(  Particle ParticleSystem[], 
+                        float i_pressure, 
+                        int ip, 
+                        int np, 
+                        glm::vec3 i_pos, 
+                        glm::vec3 n_pos, 
+                        float smoothing_scale, 
+                        float h_6, 
+                        float K, 
+                        float MASS)
 {
-    glm::vec3 i_pos;
-    glm::vec3 j_pos;
-    
-    float     delta;
-    
-    float     h_9 = smoothing_scale * smoothing_scale * smoothing_scale *
-                    smoothing_scale * smoothing_scale * smoothing_scale * 
-                    smoothing_scale * smoothing_scale * smoothing_scale;
-    
-    for(int ip = 0; ip < num_particles; ip++)
-    {
-        for(int jp = 0; jp < num_particles; jp++)
-        {
-            if (ip != jp)
-            {
-                i_pos = ParticleSystem[ip].position;
-                j_pos = ParticleSystem[jp].position;
+    float pressure_factor;
+    float MU = 0.000001f;
 
-                delta = glm::distance(i_pos, j_pos);
+    glm::vec3 viscosity_factor;
+    float n_pressure  = K * (pow(ParticleSystem[np].density/ParticleSystem[np].density0, 7) - 1);
 
-                ParticleSystem[ip].density += MASS * KernelFunction(delta, smoothing_scale,h_9);
-            }
-        }
-    }
+    float i_density   = ParticleSystem[ip].density;
+    glm::vec3 delta   = i_pos - n_pos;
+    pressure_factor   = - MASS * MASS * i_density;
+    pressure_factor  *= (i_pressure / (i_density * i_density) + 
+                         n_pressure / (ParticleSystem[np].density * ParticleSystem[np].density) );
+
+    ParticleSystem[ip].force += pressure_factor * KernelGrad(delta, smoothing_scale,h_6);
+
+    viscosity_factor  = MU * (MASS / ParticleSystem[np].density) * (ParticleSystem[np].velocity - ParticleSystem[ip].velocity);
+
+    ParticleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
+}
+
+void DensityEstimator(Particle ParticleSystem[], int ip, glm::vec3 i_pos, glm::vec3 n_pos, float smoothing_scale, float h_9, float MASS)
+{
+    float delta = glm::distance(i_pos, n_pos);
+    ParticleSystem[ip].density += MASS * KernelFunction(delta, smoothing_scale,h_9);
 }
 
 void ContainerCollisions(Particle  ParticleSystem[],
@@ -171,8 +90,8 @@ void ContainerCollisions(Particle  ParticleSystem[],
     float K     = 10.0f;    // CONSTANT OF SPRING
     float normalDist;
     float v_comp_normal;
-    //glm::vec3 gravity_force  = glm::vec3(0.0, -9.80665, 0.0) * MASS;
-    glm::vec3 gravity_force  = glm::vec3(0.0, 0, 0.0) * MASS;
+    glm::vec3 gravity_force  = glm::vec3(0.0, -9.80665, 0.0) * MASS;
+    //glm::vec3 gravity_force  = glm::vec3(0.0, 0, 0.0) * MASS;
     
     for (int ip = 0; ip < num_particles; ip++)
     {
@@ -191,7 +110,7 @@ void ContainerCollisions(Particle  ParticleSystem[],
 
                 if (v_comp_normal < 0)
                 {
-                    ParticleSystem[ip].velocity -= FluidContainer[ic].normal * v_comp_normal * 1.0f;
+                    ParticleSystem[ip].velocity -= FluidContainer[ic].normal * v_comp_normal * 1.5f;
                     //std::cout << ParticleSystem[ip].velocity.y << std::endl;
                 }   
             }
@@ -204,19 +123,69 @@ void SimulatePhysics(Particle ParticleSystem[],
                      float&tSim, float& v0, 
                      int num_particles, 
                      float timeStep, 
-                     float Radius)
+                     float Radius,
+                     float smoothing_scale,
+                     float h_9,
+                     float h_6 )
 {   
     glm::vec3 aceleration;
 
     float MASS            = 0.001f;          // MASS OF A DROP = 50e-6 kg (Set 20 drops)
     float Mask            = Radius * 0.5;    
     float RadiusMask      = Radius + Mask;
-    float smoothing_scale = RadiusMask * 3;
-    float VOLUME          = (4.0 / 3.0) * PIV * RadiusMask * RadiusMask * RadiusMask;
 
     ContainerCollisions(ParticleSystem, FluidContainer, num_particles, RadiusMask, MASS);
-    DensityEstimator(ParticleSystem, num_particles, smoothing_scale, MASS);
-    ForceEstimator(ParticleSystem, num_particles, smoothing_scale, MASS);
+
+    glm::vec3 i_pos;
+    glm::vec3 j_pos;
+    glm::vec3 n_pos;
+
+    float delta;
+    float i_pressure;
+   
+    int   n_idx;
+
+    std::vector<int> NEIGHBOURS;
+    
+
+    float K  = 500.0f;
+    for (int ip = 0; ip < num_particles; ip++)
+    {
+        i_pos = ParticleSystem[ip].position;
+        NEIGHBOURS.clear();
+        for (int jp = 0; jp < num_particles; jp++)
+        {
+            if (ip != jp)
+            {
+                j_pos = ParticleSystem[jp].position;
+                delta = glm::distance(i_pos, j_pos);
+
+                if (abs(delta) < smoothing_scale)
+                {
+                    NEIGHBOURS.push_back(jp);
+                }
+            }
+
+        }
+        for (int i_neighbour = 0; i_neighbour < NEIGHBOURS.size(); i_neighbour++)
+        {
+            n_idx = NEIGHBOURS[i_neighbour];
+            n_pos = ParticleSystem[n_idx].position;
+
+            DensityEstimator(ParticleSystem, ip, i_pos, n_pos, smoothing_scale, h_9, MASS);
+
+            
+        }
+        i_pressure  = K * (pow(ParticleSystem[ip].density/ParticleSystem[ip].density0, 7) - 1);
+
+        for (int i_neighbour = 0; i_neighbour < NEIGHBOURS.size(); i_neighbour++)
+        {
+            n_idx = NEIGHBOURS[i_neighbour];
+            n_pos = ParticleSystem[n_idx].position;
+
+            AccumulateForces(ParticleSystem, i_pressure, ip, n_idx, i_pos, n_pos, smoothing_scale, h_6, K, MASS);            
+        }
+    }    
 
     for (int ip = 0; ip < num_particles; ip++)
     {

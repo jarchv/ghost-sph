@@ -18,7 +18,7 @@ GLFWwindow* window;
 #include "utils/container.hpp"
 
 
-const int LCUBE          = 1;
+const int LCUBE          = 10;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
 
 Particle  ParticleSystem[num_particles];
@@ -27,12 +27,19 @@ Container FluidContainer[5];
 int W = 720;
 int H = 480;
 
-float tSim        = 0.0;
-float v0          = 0.0;
-float timeStep    = 0.005;
-float Radius      = 0.4;
-float SphereDist  = 0.1;
+float tSim            = 0.0;
+float v0              = 0.0;
+float timeStep        = 0.005;
+float Radius          = 0.05;
+float SphereDist      = 0.1;
+float smoothing_scale = SphereDist * 3;
 
+float h_9           = smoothing_scale * smoothing_scale * smoothing_scale *
+                    smoothing_scale * smoothing_scale * smoothing_scale * 
+                    smoothing_scale * smoothing_scale * smoothing_scale;
+
+float h_6           = smoothing_scale * smoothing_scale * smoothing_scale * 
+                      smoothing_scale * smoothing_scale * smoothing_scale;
 void init(void)
 {
     // Dark blue background
@@ -320,7 +327,7 @@ int main(int argc, char** argv)
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
         
-        //SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, Radius);
+        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, Radius, smoothing_scale, h_9, h_6);
 
         for(size_t i = 0; i < num_particles; i++)
         {
