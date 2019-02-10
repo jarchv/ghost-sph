@@ -18,7 +18,7 @@ GLFWwindow* window;
 #include "utils/container.hpp"
 
 
-const int LCUBE          = 10;
+const int LCUBE          = 9;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
 
 Particle  ParticleSystem[num_particles];
@@ -35,11 +35,18 @@ float SphereDist      = 0.1;
 float smoothing_scale = SphereDist * 3;
 
 float h_9           = smoothing_scale * smoothing_scale * smoothing_scale *
-                    smoothing_scale * smoothing_scale * smoothing_scale * 
-                    smoothing_scale * smoothing_scale * smoothing_scale;
+                      smoothing_scale * smoothing_scale * smoothing_scale * 
+                      smoothing_scale * smoothing_scale * smoothing_scale;
 
 float h_6           = smoothing_scale * smoothing_scale * smoothing_scale * 
                       smoothing_scale * smoothing_scale * smoothing_scale;
+
+// angleRes: angles per theta/phi
+
+int angleRes    = 20;
+int nSphVtx     = 18;
+int sphereSize  = nSphVtx * angleRes * angleRes;
+
 void init(void)
 {
     // Dark blue background
@@ -97,25 +104,19 @@ int main(int argc, char** argv)
 
     init();
 
-    // n: angles per theta/phi
-    int n           = 20;
-    int nSphVtx     = 18;
-    int sphereSize  = nSphVtx * n * n;
-
     static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
     static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
     static GLfloat *g_spherenormal_buffer_data = new GLfloat[sphereSize];
     
-    SphereBuffer(Radius, n, nSphVtx, g_spherevertex_buffer_data, 
+    SphereBuffer(Radius, angleRes, nSphVtx, g_spherevertex_buffer_data, 
                                   g_spherecolor_buffer_data);
 
 
     SetSphereNormals(   g_spherevertex_buffer_data, 
                         g_spherenormal_buffer_data,
-                        n);
+                        angleRes);
 
-    std::cout << sphereSize <<std::endl;
-    std::cout << g_spherevertex_buffer_data[0] <<std::endl;
+    std::cout << "sphere Size : " << sphereSize <<std::endl;
     GLuint VertexArrayID;
     glGenBuffers(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);

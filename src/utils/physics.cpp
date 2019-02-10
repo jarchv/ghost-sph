@@ -46,7 +46,6 @@ float KernelFunction(float delta, float h, float h_9)
 }
 
 void AccumulateForces(  Particle ParticleSystem[], 
-                        float i_pressure, 
                         int ip, 
                         int np, 
                         glm::vec3 i_pos, 
@@ -60,13 +59,12 @@ void AccumulateForces(  Particle ParticleSystem[],
     float MU = 0.000001f;
 
     glm::vec3 viscosity_factor;
-    float n_pressure  = K * (pow(ParticleSystem[np].density/ParticleSystem[np].density0, 7) - 1);
-
+    
     float i_density   = ParticleSystem[ip].density;
     glm::vec3 delta   = i_pos - n_pos;
     pressure_factor   = - MASS * MASS * i_density;
-    pressure_factor  *= (i_pressure / (i_density * i_density) + 
-                         n_pressure / (ParticleSystem[np].density * ParticleSystem[np].density) );
+    pressure_factor  *= (ParticleSystem[ip].pressure / (i_density * i_density) + 
+                         ParticleSystem[np].pressure / (ParticleSystem[np].density * ParticleSystem[np].density) );
 
     ParticleSystem[ip].force += pressure_factor * KernelGrad(delta, smoothing_scale,h_6);
 
@@ -177,13 +175,14 @@ void SimulatePhysics(Particle ParticleSystem[],
             
         }
         i_pressure  = K * (pow(ParticleSystem[ip].density/ParticleSystem[ip].density0, 7) - 1);
+        ParticleSystem[ip].pressure = i_pressure;
 
         for (int i_neighbour = 0; i_neighbour < NEIGHBOURS.size(); i_neighbour++)
         {
             n_idx = NEIGHBOURS[i_neighbour];
             n_pos = ParticleSystem[n_idx].position;
 
-            AccumulateForces(ParticleSystem, i_pressure, ip, n_idx, i_pos, n_pos, smoothing_scale, h_6, K, MASS);            
+            AccumulateForces(ParticleSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_6, K, MASS);            
         }
     }    
 
