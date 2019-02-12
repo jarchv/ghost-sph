@@ -57,7 +57,7 @@ void AccumulateForces(  Particle ParticleSystem[],
                         float MASS)
 {
     float pressure_factor;
-    float MU = 0.0001f;
+    float MU = 0.001f;
 
     glm::vec3 viscosity_factor;
     
@@ -68,9 +68,9 @@ void AccumulateForces(  Particle ParticleSystem[],
                          ParticleSystem[np].pressure / (ParticleSystem[np].density * ParticleSystem[np].density) );
 
     ParticleSystem[ip].force += pressure_factor * KernelGrad(delta, smoothing_scale,h_6);        
-    //viscosity_factor  = MU * (MASS / ParticleSystem[np].density) * (ParticleSystem[np].velocity - ParticleSystem[ip].velocity);
+    viscosity_factor  = MU * (MASS / ParticleSystem[np].density) * (ParticleSystem[np].velocity - ParticleSystem[ip].velocity);
 
-    //ParticleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
+    ParticleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
 }
 
 void DensityEstimator(Particle ParticleSystem[], int ip, glm::vec3 i_pos, glm::vec3 n_pos, float smoothing_scale, float h_9, float MASS)
@@ -88,7 +88,7 @@ void ContainerCollisions(Particle  ParticleSystem[],
                          float h_6,
                          float MASS)
 {
-    float K     = 5000.0f;    // CONSTANT OF SPRING
+    float K     = 500.0f;    // CONSTANT OF SPRING
     float normalDist;
     glm::vec3 Vt_liquit;
 
@@ -117,12 +117,16 @@ void ContainerCollisions(Particle  ParticleSystem[],
                 Vt_liquit        = ParticleSystem[ip].velocity - Vt_normal_value * FluidContainer[ic].normal;
                 ParticleSystem[ip].velocity = Vt_liquit;
 
-                ParticleSystem[ip].density  += MASS * KernelFunction(abs(normalDist), smoothing_scale,h_9) * 3.0;
+                ParticleSystem[ip].density  += MASS * KernelFunction(abs(normalDist), smoothing_scale,h_9) * 3;
                 
-                ParticleSystem[ip].force += K * FluidContainer[ic].normal * MASS * (RadiusMask - abs(normalDist));
-                /*
+                if (normalDist > 0 && normalDist <  RadiusMask/2)
+                {   
+                    ParticleSystem[ip].position = ParticleSystem[ip].position + FluidContainer[ic].normal * (RadiusMask/2 - normalDist);
+                }
+                //ParticleSystem[ip].force += K * FluidContainer[ic].normal * MASS * (RadiusMask - abs(normalDist));
+                
                 float pressure_factor;
-                float MU = 3.0f;
+                float MU = 0.01f;
 
                 glm::vec3 viscosity_factor;
                 
@@ -141,7 +145,7 @@ void ContainerCollisions(Particle  ParticleSystem[],
                 ParticleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
 
                 //std::cout << "Force 2: " << ParticleSystem[ip].force.y <<std::endl;
-                */
+                
             }   
         }
     }    
@@ -158,8 +162,8 @@ void SimulatePhysics(Particle ParticleSystem[],
                      float h_6 )
 {   
     glm::vec3 aceleration;
-    float K               = 1.0f;
-    float MASS            = 0.1f;          // MASS OF A DROP = 50e-6 kg (Set 20 drops)
+    float K               = 100.0f;
+    float MASS            = 0.12f;          // MASS OF A DROP = 50e-6 kg (Set 20 drops)
     float Mask            = Radius * 1.0;    
     float RadiusMask      = Radius + Mask;
 
@@ -208,7 +212,6 @@ void SimulatePhysics(Particle ParticleSystem[],
             
         }
         i_pressure  = K * (pow(ParticleSystem[ip].density/ParticleSystem[ip].density0, 7) - 1);
-        std::cout << "i_pressure :" << i_pressure << std::endl;
         ParticleSystem[ip].pressure = i_pressure;
 
         for (int i_neighbour = 0; i_neighbour < NEIGHBOURS.size(); i_neighbour++)
