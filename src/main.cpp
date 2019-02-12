@@ -17,8 +17,7 @@ GLFWwindow* window;
 #include "utils/physics.hpp"
 #include "utils/container.hpp"
 
-
-const int LCUBE          = 9;
+const int LCUBE          = 8;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
 
 Particle  ParticleSystem[num_particles];
@@ -31,8 +30,8 @@ float tSim            = 0.0;
 float v0              = 0.0;
 float timeStep        = 0.005;
 float Radius          = 0.05;
-float SphereDist      = 0.1;
-float smoothing_scale = SphereDist * 3;
+float SphereDist      = 0.05;
+float smoothing_scale = SphereDist * 3.0;
 
 float h_9           = smoothing_scale * smoothing_scale * smoothing_scale *
                       smoothing_scale * smoothing_scale * smoothing_scale * 
