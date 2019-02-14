@@ -17,7 +17,7 @@ GLFWwindow* window;
 #include "utils/physics.hpp"
 #include "utils/container.hpp"
 
-const int LCUBE          = 8;
+const int LCUBE          = 11;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
 
 Particle  ParticleSystem[num_particles];
@@ -176,6 +176,7 @@ int main(int argc, char** argv)
                                          g_spherenormal_buffer_data ,
                                          GL_STATIC_DRAW);   
 
+
     glUseProgram(programID);
     GLuint TransparentID = glGetUniformLocation(programID, "Transparent");
     GLuint LightID       = glGetUniformLocation(programID, "LightPosition_worldspace");
@@ -195,7 +196,6 @@ int main(int argc, char** argv)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     setContainer(FluidContainer);
-
     setInitialPosition(ParticleSystem, num_particles, LCUBE, SphereDist);
 
     do {

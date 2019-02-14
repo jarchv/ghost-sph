@@ -179,14 +179,15 @@ void SimulatePhysics(Particle ParticleSystem[],
     int   n_idx;
 
     std::vector<int> NEIGHBOURS;
-    
 
-    
+#   pragma omp parallel for private(NEIGHBOURS, i_pressure, n_idx, delta, i_pos, j_pos, n_pos, aceleration) num_threads(4)
     for (int ip = 0; ip < num_particles; ip++)
     {
         i_pos = ParticleSystem[ip].position;
         ParticleSystem[ip].density = 1000.0;
         NEIGHBOURS.clear();
+
+
         for (int jp = 0; jp < num_particles; jp++)
         {
             if (ip != jp)
@@ -208,9 +209,8 @@ void SimulatePhysics(Particle ParticleSystem[],
             n_pos = ParticleSystem[n_idx].position;
 
             DensityEstimator(ParticleSystem, ip, i_pos, n_pos, smoothing_scale, h_9, MASS);
-
-            
         }
+
         i_pressure  = K * (pow(ParticleSystem[ip].density/ParticleSystem[ip].density0, 7) - 1);
         ParticleSystem[ip].pressure = i_pressure;
 

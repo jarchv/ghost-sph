@@ -48,7 +48,6 @@ include_directories(${GLEW_INCLUDE_DIRS})
 #set_target_properties(out PROPERTIES 
 #                      LINKER_LANGUAGE CXX)
                       
-
 target_link_libraries(
         out
         PRIVATE
@@ -60,5 +59,5 @@ target_link_libraries(
 install(TARGETS out DESTINATION /usr/lib)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "-o3")
+  set(CMAKE_CXX_FLAGS "-o3 -fopenmp")
 endif()
