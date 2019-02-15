@@ -17,7 +17,7 @@ GLFWwindow* window;
 #include "utils/physics.hpp"
 #include "utils/container.hpp"
 
-const int LCUBE          = 11;
+const int LCUBE          = 13;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
 
 Particle  ParticleSystem[num_particles];
@@ -196,7 +196,8 @@ int main(int argc, char** argv)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     setContainer(FluidContainer);
-    setInitialPosition(ParticleSystem, num_particles, LCUBE, SphereDist);
+    //setInitialPosition(ParticleSystem, num_particles, LCUBE, SphereDist);
+    setCubeRandomly(ParticleSystem, num_particles, 0.5);
 
     do {
         double currentTime = glfwGetTime();

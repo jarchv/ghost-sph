@@ -13,3 +13,22 @@ void setInitialPosition(Particle ParticleSystem[], int num_particles, int lcube,
         ParticleSystem[ip].force      = glm::vec3(0.0,0.0,0.0);
     }
 }
+
+void setCubeRandomly(Particle ParticleSystem[], int num_particles, float lcube)
+{
+    float epsilonX;
+    float epsilonY;
+    float epsilonZ;
+    for (int ip = 0; ip < num_particles; ip++)
+    {
+        epsilonX = ((float)(rand()%1000) / 1000.0);
+        epsilonY = ((float)(rand()%1000) / 1000.0);
+        epsilonZ = ((float)(rand()%1000) / 1000.0);
+        //std::cout << "epsilon = " << epsilon << std::endl;
+        ParticleSystem[ip].position.x = epsilonX * lcube + 0.0;
+        ParticleSystem[ip].position.y = epsilonY * lcube + 2.0;
+        ParticleSystem[ip].position.z = epsilonZ * lcube + 0.5;
+        ParticleSystem[ip].velocity   = glm::vec3(0.0,0.0,0.0);
+        ParticleSystem[ip].force      = glm::vec3(0.0,0.0,0.0);
+    }
+}

@@ -54,10 +54,11 @@ void AccumulateForces(  Particle ParticleSystem[],
                         float smoothing_scale, 
                         float h_6, 
                         float K, 
+                        float MU,
                         float MASS)
 {
     float pressure_factor;
-    float MU = 0.001f;
+    
 
     glm::vec3 viscosity_factor;
     
@@ -117,7 +118,7 @@ void ContainerCollisions(Particle  ParticleSystem[],
                 Vt_liquit        = ParticleSystem[ip].velocity - Vt_normal_value * FluidContainer[ic].normal;
                 ParticleSystem[ip].velocity = Vt_liquit;
 
-                ParticleSystem[ip].density  += MASS * KernelFunction(abs(normalDist), smoothing_scale,h_9) * 3;
+                ParticleSystem[ip].density  += MASS * KernelFunction(abs(normalDist), smoothing_scale,h_9) * 10;
                 
                 if (normalDist > 0 && normalDist <  RadiusMask/2)
                 {   
@@ -126,7 +127,7 @@ void ContainerCollisions(Particle  ParticleSystem[],
                 //ParticleSystem[ip].force += K * FluidContainer[ic].normal * MASS * (RadiusMask - abs(normalDist));
                 
                 float pressure_factor;
-                float MU = 0.01f;
+                float MU = 0.001f;
 
                 glm::vec3 viscosity_factor;
                 
@@ -162,11 +163,13 @@ void SimulatePhysics(Particle ParticleSystem[],
                      float h_6 )
 {   
     glm::vec3 aceleration;
-    float K               = 100.0f;
+
+    float K               = 10.0f;
+    float MU              = 0.0001f;
     float MASS            = 0.12f;          // MASS OF A DROP = 50e-6 kg (Set 20 drops)
     float Mask            = Radius * 1.0;    
     float RadiusMask      = Radius + Mask;
-
+    
     ContainerCollisions(ParticleSystem, FluidContainer, num_particles, RadiusMask, smoothing_scale, h_9, h_6,MASS);
 
     glm::vec3 i_pos;
@@ -180,7 +183,7 @@ void SimulatePhysics(Particle ParticleSystem[],
 
     std::vector<int> NEIGHBOURS;
 
-#   pragma omp parallel for private(NEIGHBOURS, i_pressure, n_idx, delta, i_pos, j_pos, n_pos, aceleration) num_threads(4)
+#   pragma omp parallel for private(NEIGHBOURS, i_pressure, n_idx, delta, i_pos, j_pos, n_pos, aceleration) num_threads(8)
     for (int ip = 0; ip < num_particles; ip++)
     {
         i_pos = ParticleSystem[ip].position;
@@ -219,16 +222,17 @@ void SimulatePhysics(Particle ParticleSystem[],
             n_idx = NEIGHBOURS[i_neighbour];
             n_pos = ParticleSystem[n_idx].position;
 
-            AccumulateForces(ParticleSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_6, K, MASS);            
+            AccumulateForces(ParticleSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_6, K, MU,MASS);            
         }
     }    
-
+    
     for (int ip = 0; ip < num_particles; ip++)
     {
         aceleration  = ParticleSystem[ip].force * (1 /  MASS);
         ParticleSystem[ip].velocity += timeStep * aceleration;
         ParticleSystem[ip].position += ParticleSystem[ip].velocity * timeStep;
     }
-
+    
     tSim += timeStep;
+    
 }
