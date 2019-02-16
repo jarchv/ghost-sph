@@ -17,21 +17,32 @@ GLFWwindow* window;
 #include "utils/physics.hpp"
 #include "utils/container.hpp"
 
-const int LCUBE          = 13;
+const int LCUBE          = 12;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
 
 Particle  ParticleSystem[num_particles];
 Container FluidContainer[5];
 
-int W = 720;
-int H = 480;
+float K               = 10.0f;
+float MU              = 100.1f;
+float SIGMA           = 0.000;
+float MASS            = 0.12f;          // MASS OF A DROP = 50e-6 kg (Set 20 drops)
+
+int windowSizeW       = 720;
+int windowSizeH       = 480;
 
 float tSim            = 0.0;
 float v0              = 0.0;
-float timeStep        = 0.005;
-float Radius          = 0.05;
-float SphereDist      = 0.05;
-float smoothing_scale = SphereDist * 3.0;
+float timeStep        = 0.01;
+
+float particleCubeSize = 0.5;
+float cubePartPosX0    = 0.0;
+float cubePartPosY0    = 2.0;
+float cubePartPosZ0    = 1.0;
+
+
+float particleRadius   = 0.05;
+float smoothing_scale  = particleRadius * 3.0;
 
 float h_9           = smoothing_scale * smoothing_scale * smoothing_scale *
                       smoothing_scale * smoothing_scale * smoothing_scale * 
@@ -42,9 +53,18 @@ float h_6           = smoothing_scale * smoothing_scale * smoothing_scale *
 
 // angleRes: angles per theta/phi
 
-int angleRes    = 20;
-int nSphVtx     = 18;
-int sphereSize  = nSphVtx * angleRes * angleRes;
+
+int angleRes                      = 20;
+int nSphVtx                       = 18;
+int sphereSizeRes                 = nSphVtx * angleRes * angleRes;
+std::vector<float> particleColor  = {0.0, 0.5, 0.45};
+std::vector<float> particleCenter = {0.0, 0.0, 0.0};
+
+float objRadius                   = 0.2;
+int objAngleRes                   = 20;
+int objectSizeRes                 = nSphVtx * objAngleRes * objAngleRes;
+std::vector<float> objectColor    = {0.85, 0.1, 0.15};
+std::vector<float> objectCenter   = {0.0, 1.5, 1.0};
 
 void init(void)
 {
@@ -59,6 +79,10 @@ void init(void)
 
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS); 
+
+    // Enable blending
+	glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 
@@ -75,7 +99,7 @@ int main(int argc, char** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR   , 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR   , 0);
 
-    window = glfwCreateWindow(W, H, "Ghost SPH", NULL, NULL);
+    window = glfwCreateWindow(windowSizeW , windowSizeH, "Ghost SPH", NULL, NULL);
 
     if (!window){
         std::cout << "Window or OpenGL context creation failed!" << std::endl;
@@ -99,29 +123,46 @@ int main(int argc, char** argv)
 
     // Establer el mouse en el centro
     glfwPollEvents();
-    glfwSetCursorPos(window, W/2, H/2);
+    glfwSetCursorPos(window, windowSizeW/2, windowSizeH/2);
 
     init();
 
-    static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSize];
-    static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSize];
-    static GLfloat *g_spherenormal_buffer_data = new GLfloat[sphereSize];
-    
-    SphereBuffer(Radius, angleRes, nSphVtx, g_spherevertex_buffer_data, 
-                                  g_spherecolor_buffer_data);
+    static GLfloat *g_spherevertex_buffer_data = new GLfloat[sphereSizeRes];
+    static GLfloat *g_spherecolor_buffer_data  = new GLfloat[sphereSizeRes];
+    static GLfloat *g_spherenormal_buffer_data = new GLfloat[sphereSizeRes];
+
+    static GLfloat *g_objectvertex_buffer_data = new GLfloat[objectSizeRes];
+    static GLfloat *g_objectcolor_buffer_data  = new GLfloat[objectSizeRes];
+    static GLfloat *g_objectnormal_buffer_data = new GLfloat[objectSizeRes];
+
+    SphereBuffer(particleRadius, angleRes, nSphVtx, particleColor, g_spherevertex_buffer_data, 
+                                            g_spherecolor_buffer_data, particleCenter);
 
 
     SetSphereNormals(   g_spherevertex_buffer_data, 
                         g_spherenormal_buffer_data,
                         angleRes);
 
-    std::cout << "sphere Size : " << sphereSize <<std::endl;
+    SphereBuffer(objRadius, objAngleRes, nSphVtx, objectColor,  g_objectvertex_buffer_data, 
+                                                g_objectcolor_buffer_data, objectCenter);
+
+
+    SetSphereNormals(   g_objectvertex_buffer_data, 
+                        g_objectnormal_buffer_data,
+                        objAngleRes);
+
+    std::cout << "num of particles : " << num_particles <<std::endl;
     GLuint VertexArrayID;
     glGenBuffers(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
     GLuint programID = LoadShaders( "../src/vertexShader.glsl", 
                                     "../src/fragmentShader.glsl" );
+
+    /*
+    * Container
+    * ============================================================== 
+    */
 
     // This will identify our vertex buffer
     GLuint vertexbuffer;
@@ -152,11 +193,16 @@ int main(int argc, char** argv)
                                          GL_STATIC_DRAW);   
 
 
+    /*
+    * Particle
+    * ============================================================== 
+    */
+
     GLuint spherebuffer;
 
     glGenBuffers(1, &spherebuffer);
     glBindBuffer(GL_ARRAY_BUFFER, spherebuffer);
-    glBufferData(GL_ARRAY_BUFFER, sphereSize * sizeof(float),
+    glBufferData(GL_ARRAY_BUFFER, sphereSizeRes * sizeof(float),
                                          g_spherevertex_buffer_data ,
                                          GL_STATIC_DRAW); 
 
@@ -164,7 +210,7 @@ int main(int argc, char** argv)
 
     glGenBuffers(1, &spherecolor_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, spherecolor_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sphereSize * sizeof(float),
+    glBufferData(GL_ARRAY_BUFFER, sphereSizeRes * sizeof(float),
                                          g_spherecolor_buffer_data ,
                                          GL_STATIC_DRAW); 
 
@@ -172,11 +218,44 @@ int main(int argc, char** argv)
 
     glGenBuffers(1, &spherenormal_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, spherenormal_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sphereSize * sizeof(float),
+    glBufferData(GL_ARRAY_BUFFER, sphereSizeRes * sizeof(float),
                                          g_spherenormal_buffer_data ,
                                          GL_STATIC_DRAW);   
 
+    /*
+    * Object
+    * ======
+    * 
+    */
 
+    GLuint objectbuffer;
+
+    glGenBuffers(1, &objectbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER,   objectbuffer);
+    glBufferData(GL_ARRAY_BUFFER,   objectSizeRes * sizeof(float),
+                                    g_objectvertex_buffer_data ,
+                                    GL_STATIC_DRAW); 
+
+    GLuint objectcolor_buffer;
+
+    glGenBuffers(1, &objectcolor_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, objectcolor_buffer);
+    glBufferData(GL_ARRAY_BUFFER,   objectSizeRes * sizeof(float),
+                                    g_objectcolor_buffer_data ,
+                                    GL_STATIC_DRAW); 
+
+    GLuint objectnormal_buffer;
+
+    glGenBuffers(1, &objectnormal_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, objectnormal_buffer);
+    glBufferData(GL_ARRAY_BUFFER, objectSizeRes * sizeof(float),
+                                         g_objectnormal_buffer_data ,
+                                         GL_STATIC_DRAW);  
+    
+    /*
+    * Transparent input parameter
+    * ===========================
+    */
     glUseProgram(programID);
     GLuint TransparentID = glGetUniformLocation(programID, "Transparent");
     GLuint LightID       = glGetUniformLocation(programID, "LightPosition_worldspace");
@@ -189,15 +268,18 @@ int main(int argc, char** argv)
 	// For speed computation
 	double lastTime  = glfwGetTime();
     double startTime = lastTime; 
-    int nbFrames = 0;
-
-    // Enable blending
-	glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    int    nbFrames  = 0;
 
     setContainer(FluidContainer);
-    //setInitialPosition(ParticleSystem, num_particles, LCUBE, SphereDist);
-    setCubeRandomly(ParticleSystem, num_particles, 0.5);
+    
+    /*
+    * Setting Initial Position for the cube of particles
+    * ===================================================
+    *  
+    *  Center = (cubePartPosX0, cubePartPosY0, cubePartPosZ0)
+    * 
+    */
+    setCubeRandomly(ParticleSystem, num_particles, particleCubeSize, cubePartPosX0, cubePartPosY0, cubePartPosZ0);
 
     do {
         double currentTime = glfwGetTime();
@@ -207,14 +289,14 @@ int main(int argc, char** argv)
 
 		if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1sec ago
 			// printf and reset
-			printf("%f ms/frame\n", 1000.0/double(nbFrames));
+		    printf("%f ms/frame\n", 1000.0/double(nbFrames));
 			nbFrames = 0;
 			lastTime += 1.0;
             
         }
 
         //glClear(GL_COLOR_BUFFER_BIT);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use our shader
         glUseProgram(programID);
@@ -233,13 +315,20 @@ int main(int argc, char** argv)
         glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
         glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 
+
+
+
 		glm::vec3 lightPos = glm::vec3(10,6,10);
         
         
         glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
+
+        /*
+        * Container:
+        * ============================
+        */    
         
-        
-        glUniform1f(TransparentID,1.0);
+        glUniform1f(TransparentID,0.2);
         // 1st attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -279,11 +368,68 @@ int main(int argc, char** argv)
 
         int nTriangles = sizeof(g_color_buffer_data)/(3 * 3 * 4 );
         glDrawArrays(GL_TRIANGLES, 0, 3 * nTriangles);   
+        
+        /*
+        * Object:
+        * ============================
+        */
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
         glClear(GL_DEPTH_BUFFER_BIT);
+        glUseProgram(programID);
+
+        glUniform1f(TransparentID,1.0);
+
+        // 1th attribute buffer : sphere
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, objectbuffer);
+        glVertexAttribPointer(
+            0,          // attibute 2, must match the layout in the shader
+            3,          // size
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalizerd?
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
+        // 2th attribute buffer : colors
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, objectcolor_buffer);
+        glVertexAttribPointer(
+            1,          // attibute 2, must match the layout in the shader
+            3,          // size
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalizerd?
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
+        // 3th attribute buffer : colors
+        
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, objectnormal_buffer);
+        glVertexAttribPointer(
+            2,          // attibute 2, must match the layout in the shader
+            3,          // size
+            GL_FLOAT,   // type
+            GL_FALSE,   // normalizerd?
+            0,          // stride
+            (void*)0    // array buffer offset
+        );
+
+        glDrawArrays(GL_TRIANGLES, 0, objectSizeRes/3 );  
+
+        /*
+        * Particles:
+        * ============================
+        */
+         
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
+        //glClear(GL_DEPTH_BUFFER_BIT);
         glUseProgram(programID);
 
         glUniform1f(TransparentID,1.0);
@@ -314,8 +460,8 @@ int main(int argc, char** argv)
 
         // 3th attribute buffer : colors
         
-        glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, spherenormal_buffer);
+        glEnableVertexAttribArray(2);
         glVertexAttribPointer(
             2,          // attibute 2, must match the layout in the shader
             3,          // size
@@ -328,7 +474,7 @@ int main(int argc, char** argv)
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
         
-        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, Radius, smoothing_scale, h_9, h_6);
+        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, particleRadius, smoothing_scale, h_9, h_6, K, MU, SIGMA,MASS);
 
         for(size_t i = 0; i < num_particles; i++)
         {
@@ -339,7 +485,7 @@ int main(int argc, char** argv)
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
             glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-            glDrawArrays(GL_TRIANGLES, 0, sphereSize/3 );   
+            glDrawArrays(GL_TRIANGLES, 0, sphereSizeRes/3 );   
         
         }
         
@@ -350,6 +496,8 @@ int main(int argc, char** argv)
         // Swap buffer
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
     }
 
@@ -357,15 +505,31 @@ int main(int argc, char** argv)
           glfwWindowShouldClose(window)       == 0            );
     
 
+
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &colorbuffer);
 	glDeleteBuffers(1, &normalbuffer);
+    
     glDeleteBuffers(1, &spherebuffer);
     glDeleteBuffers(1, &spherecolor_buffer);
+    glDeleteBuffers(1, &spherenormal_buffer);
+
+    glDeleteBuffers(1, &objectbuffer);
+    glDeleteBuffers(1, &objectcolor_buffer);
+    glDeleteBuffers(1, &objectnormal_buffer);
+
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteProgram(programID);
     
     glfwTerminate();
-    
+
+    delete [] g_spherevertex_buffer_data;
+    delete [] g_spherecolor_buffer_data;
+    delete [] g_spherenormal_buffer_data;
+
+    delete [] g_objectvertex_buffer_data;
+    delete [] g_objectcolor_buffer_data;
+    delete [] g_objectnormal_buffer_data;
+
     return 0;
 }

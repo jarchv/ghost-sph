@@ -54,8 +54,10 @@ void SetSphereNormals(  GLfloat* g_spherevertex_buffer_data,
 void SphereBuffer(  float   radio, 
                     int     angleRes,
                     int     nSphVtx,
+                    std::vector<float> sphereColor,
                     GLfloat* g_spherevertex_buffer_data,
-                    GLfloat* g_spherecolor_buffer_data){
+                    GLfloat* g_spherecolor_buffer_data,
+                    std::vector<float> sphereCenter){
     
 	float px, py, pz;
 	int i, j;
@@ -82,9 +84,9 @@ void SphereBuffer(  float   radio,
                 py = sin(PI - theta*(j + dj))*sin(phi*(i + di))*radio;
                 px = sin(PI - theta*(j + dj))*cos(phi*(i + di))*radio;          
 
-                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u    ] = px;
-                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 1] = py;
-                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 2] = pz;      
+                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u    ] = px + sphereCenter[0];
+                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 1] = py + sphereCenter[1];
+                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 2] = pz + sphereCenter[2];      
             }
 
             di = 0;
@@ -101,16 +103,16 @@ void SphereBuffer(  float   radio,
                 py = sin(PI - theta*(j + dj))*sin(phi*(i + di))*radio;
                 px = sin(PI - theta*(j + dj))*cos(phi*(i + di))*radio;          
 
-                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u    ] = px;
-                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 1] = py;
-                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 2] = pz;      
+                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u    ] = px + sphereCenter[0];
+                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 1] = py + sphereCenter[1];
+                g_spherevertex_buffer_data[(i * angleRes + j)*nSphVtx + u + 2] = pz + sphereCenter[2];      
             }
 
             for(int k = 0; k < nSphVtx/3; k++)
             {
-                g_spherecolor_buffer_data[(i * angleRes + j)*nSphVtx + k*3 + 0] = 0.0f;
-                g_spherecolor_buffer_data[(i * angleRes + j)*nSphVtx + k*3 + 1] = 0.5f;
-                g_spherecolor_buffer_data[(i * angleRes + j)*nSphVtx + k*3 + 2] = 0.45f;
+                g_spherecolor_buffer_data[(i * angleRes + j)*nSphVtx + k*3 + 0] = sphereColor[0];
+                g_spherecolor_buffer_data[(i * angleRes + j)*nSphVtx + k*3 + 1] = sphereColor[1];
+                g_spherecolor_buffer_data[(i * angleRes + j)*nSphVtx + k*3 + 2] = sphereColor[2];
             }
 		}
 	}

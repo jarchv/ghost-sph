@@ -9,4 +9,8 @@ void SimulatePhysics(Particle ParticleSystem[],
                      float Radius,
                      float smoothing_scale,
                      float h_9,
-                     float h_6 );
+                     float h_6,
+                     float k0,
+                     float MU,
+                     float sigma0,
+                     float MASS);
