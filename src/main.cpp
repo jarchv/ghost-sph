@@ -16,6 +16,7 @@ GLFWwindow* window;
 #include "utils/sampling.hpp"
 #include "utils/physics.hpp"
 #include "utils/container.hpp"
+#include "utils/solid.hpp"
 
 const int LCUBE          = 12;
 const int num_particles  = LCUBE * LCUBE * LCUBE;
@@ -57,14 +58,24 @@ float h_6           = smoothing_scale * smoothing_scale * smoothing_scale *
 int angleRes                      = 20;
 int nSphVtx                       = 18;
 int sphereSizeRes                 = nSphVtx * angleRes * angleRes;
-std::vector<float> particleColor  = {0.0, 0.5, 0.45};
+//std::vector<float> particleColor  = {0.0, 0.5, 0.45};
+std::vector<float> particleColor  = {0.0, 0.5, 0.65};
 std::vector<float> particleCenter = {0.0, 0.0, 0.0};
 
+/*
+* Setting Object:
+* ===============
+*/
+
 float objRadius                   = 0.2;
-int objAngleRes                   = 20;
+int objAngleRes                   = 40;
 int objectSizeRes                 = nSphVtx * objAngleRes * objAngleRes;
-std::vector<float> objectColor    = {0.85, 0.1, 0.15};
+std::vector<float> objectColor    = {0.75, 0.1, 0.15};
 std::vector<float> objectCenter   = {0.0, 1.5, 1.0};
+
+const int obj_num_particles       = 100;
+
+Solid solidSystem[obj_num_particles];
 
 void init(void)
 {
@@ -150,6 +161,8 @@ int main(int argc, char** argv)
     SetSphereNormals(   g_objectvertex_buffer_data, 
                         g_objectnormal_buffer_data,
                         objAngleRes);
+
+    createObject(solidSystem, obj_num_particles, objRadius, objectCenter);
 
     std::cout << "num of particles : " << num_particles <<std::endl;
     GLuint VertexArrayID;
@@ -474,7 +487,17 @@ int main(int argc, char** argv)
         // Draw the triangle
         // Starting from vertex 0; 3 vertices total -> 1 triangle
         
-        SimulatePhysics(ParticleSystem, FluidContainer, tSim, v0, num_particles, timeStep, particleRadius, smoothing_scale, h_9, h_6, K, MU, SIGMA,MASS);
+        SimulatePhysics(ParticleSystem, 
+                        solidSystem, 
+                        FluidContainer, 
+                        tSim, 
+                        v0, 
+                        num_particles, 
+                        obj_num_particles, 
+                        timeStep, 
+                        particleRadius, 
+                        smoothing_scale, 
+                        h_9, h_6, K, MU, SIGMA, MASS);
 
         for(size_t i = 0; i < num_particles; i++)
         {

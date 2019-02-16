@@ -22,6 +22,8 @@ add_library(base
         
     src/utils/container.hpp
     src/utils/container.cpp
+    src/utils/solid.hpp
+    src/utils/solid.cpp
 )
 
 target_compile_features(base PUBLIC cxx_std_11)

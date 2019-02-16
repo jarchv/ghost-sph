@@ -1,8 +1,9 @@
-#include "sphere.hpp"
 #include <glm/glm.hpp>
-#include "container.hpp"
 #include <vector>
 #include <omp.h>
+
+#include "sphere.hpp"
+#include "physics.hpp"
 
 #define PIV 3.14159
 
@@ -10,16 +11,15 @@
 * Navier-Stokes equations:
 * =======================
 * 
-* dv/dt = (1 / density) * [- grad(p) + mu * grad**2(v) + f]
+* F = [ F_presure + F_viscosity + F_external]
 *
-* dv/dt = (1 / density) * [ presure + viscosity + external force]
-*
-*/
-
-/*
-* Schoenberg (1946) B-Spline:
-* ===========================
-* Gaussian shaped kernel
+* F_external = gravity
+* 
+* Presure  = Kgas * [(p / p0)**gamma - 1]
+* 
+* F_pressure  = - (Vi * Vj) * (Pressure_i + Pressure_j) * 0.5 * Grad(Kernel(ri - rj, h))
+* F_viscosity = + (Vi * Vj) * (mu_i + mu_j) * 0.5 *(vj - vi) * Laplacian(Kernel(ri - rj, h))
+* 
 */
 
 glm::vec3 kernelPoly6Grad(glm::vec3 delta, float h,float h_9)
@@ -35,21 +35,6 @@ float kernelPoly6Laplacian(glm::vec3 delta, float h,float h_9)
     float r      = glm::length(delta);
     return factor * (h * h - r * r) * (7 * r * r - 3 * h * h);
 }
-float KernelLaplacian(glm::vec3 delta, float h, float h_6)
-{
-    float r = glm::length(delta);
-    return  (45.0 / (PIV * h_6 )) * (h - r);
-}
-
-glm::vec3 KernelGrad(glm::vec3 delta, float h, float h_6)
-{
-    // Gradient spinky kernel
-
-    float r = glm::length(delta);
-
-    float factor = (45.0 / (PIV * h_6)) * (h - r) * (h - r);
-    return  - factor * glm::normalize(delta);   
-}
 
 float KernelFunction(float delta, float h, float h_9)
 {
@@ -60,18 +45,33 @@ float KernelFunction(float delta, float h, float h_9)
                                           (h * h - delta * delta);
 }
 
-void AccumulateForces(  Particle ParticleSystem[], 
-                        int ip, 
-                        int np, 
-                        glm::vec3 i_pos, 
-                        glm::vec3 n_pos, 
-                        float smoothing_scale, 
-                        float h_9,
-                        float h_6, 
-                        float K, 
-                        float MU,
-                        float SIGMA,
-                        float MASS)
+float KernelLaplacian(glm::vec3 delta, float h, float h_6)
+{
+    float r = glm::length(delta);
+    return  (45.0 / (PIV * h_6 )) * (h - r);
+}
+
+glm::vec3 KernelGrad(glm::vec3 delta, float h, float h_6)
+{
+    float r = glm::length(delta);
+
+    float factor = (45.0 / (PIV * h_6)) * (h - r) * (h - r);
+    return  - factor * glm::normalize(delta);   
+}
+
+void accumulateForces(  Particle    particleSystem[], 
+                        int         ip, 
+                        int         np, 
+                        glm::vec3   i_pos, 
+                        glm::vec3   n_pos, 
+                        float       smoothing_scale, 
+                        float       h_9,
+                        float       h_6, 
+                        float       K, 
+                        float       MU,
+                        float       SIGMA,
+                        float       MASS,
+                        bool        isSolid)
 {
     float pressure_factor;
 
@@ -80,36 +80,49 @@ void AccumulateForces(  Particle ParticleSystem[],
     glm::vec3 colorFieldNormal;
     float     colorFieldLaplacian;
 
-    float i_density   = ParticleSystem[ip].density;
-    float n_density   = ParticleSystem[np].density;
+    float i_density   = particleSystem[ip].density;
+    
+    float n_density;
+    float n_pressure;
+
+    glm::vec3 n_velocity = glm::vec3(0.0,0.0,0.0);
+
+    if (isSolid == true)
+    {
+        n_density   = particleSystem[np].density0;
+        n_pressure  = 0.0;
+    }
+
+    else
+    {    
+        n_density   = particleSystem[np].density;
+        n_pressure  = particleSystem[np].pressure;
+        n_velocity  = particleSystem[np].velocity;
+    }
 
     glm::vec3 delta   = i_pos - n_pos;
     pressure_factor   = -(MASS * MASS/(i_density * n_density));
-    pressure_factor  *=  ((ParticleSystem[ip].pressure + ParticleSystem[np].pressure)/2.0);
+    pressure_factor  *=  ((particleSystem[ip].pressure + n_pressure)/2.0);
 
-    //pressure_factor  *= (ParticleSystem[ip].pressure / (i_density * i_density) + 
-    //                     ParticleSystem[np].pressure / (ParticleSystem[np].density * ParticleSystem[np].density) );
+    //pressure_factor  *= (particleSystem[ip].pressure / (i_density * i_density) + 
+    //                     particleSystem[np].pressure / (particleSystem[np].density * particleSystem[np].density) );
 
-    ParticleSystem[ip].force += pressure_factor * KernelGrad(delta, smoothing_scale,h_6);        
+    particleSystem[ip].force += pressure_factor * KernelGrad(delta, smoothing_scale,h_6);        
 
-    viscosity_factor  = MASS * MASS/(i_density * n_density) * MU * (ParticleSystem[np].velocity - ParticleSystem[ip].velocity);
-    //viscosity_factor  = MU * (MASS / ParticleSystem[np].density) * (ParticleSystem[np].velocity - ParticleSystem[ip].velocity);
+    viscosity_factor  = MASS * MASS/(i_density * n_density) * MU * (n_velocity - particleSystem[ip].velocity);
+    //viscosity_factor  = MU * (MASS / particleSystem[np].density) * (particleSystem[np].velocity - particleSystem[ip].velocity);
 
-    ParticleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
+    particleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
 
-    colorFieldNormal    += MASS * kernelPoly6Grad(delta,smoothing_scale, h_9)/ParticleSystem[np].density;
-    colorFieldLaplacian += MASS * kernelPoly6Laplacian(delta,smoothing_scale, h_9)/ParticleSystem[np].density;
+    colorFieldNormal    += MASS * kernelPoly6Grad(delta,smoothing_scale, h_9)/n_density;
+    colorFieldLaplacian += MASS * kernelPoly6Laplacian(delta,smoothing_scale, h_9)/n_density;
 
-    ParticleSystem[ip].force += (-SIGMA) * colorFieldLaplacian * glm::normalize(colorFieldNormal);
+    particleSystem[ip].force += (-SIGMA) * colorFieldLaplacian * glm::normalize(colorFieldNormal);
 }
 
-void DensityEstimator(Particle ParticleSystem[], int ip, glm::vec3 i_pos, glm::vec3 n_pos, float smoothing_scale, float h_9, float MASS)
-{
-    float delta = glm::distance(i_pos, n_pos);
-    ParticleSystem[ip].density += MASS * KernelFunction(delta, smoothing_scale,h_9);
-}
 
-void ContainerCollisions(Particle  ParticleSystem[],
+
+void ContainerCollisions(Particle  particleSystem[],
                          Container FluidContainer[], 
                          int num_particles, 
                          float RadiusMask,
@@ -132,84 +145,124 @@ void ContainerCollisions(Particle  ParticleSystem[],
     
     for (int ip = 0; ip < num_particles; ip++)
     {
-        ParticleSystem[ip].force = gravity_force;
+        particleSystem[ip].force = gravity_force;
 
-        //i_pos = ParticleSystem[ip].position;
+        //i_pos = particleSystem[ip].position;
 
         for (int ic = 0; ic < 5; ic ++)
         {
-            glm::vec3 deltaC = ParticleSystem[ip].position - FluidContainer[ic].center;
+            glm::vec3 deltaC = particleSystem[ip].position - FluidContainer[ic].center;
             normalDist       = glm::dot(deltaC, FluidContainer[ic].normal);
             
             /*
             if (normalDist > 0 && normalDist <  RadiusMask)
             {   
-                ParticleSystem[ip].position = ParticleSystem[ip].position + FluidContainer[ic].normal * (RadiusMask/2 - normalDist)*0.5f;
+                particleSystem[ip].position = particleSystem[ip].position + FluidContainer[ic].normal * (RadiusMask/2 - normalDist)*0.5f;
             }
             */
             if (normalDist < 0) // inner
             {
-                ParticleSystem[ip].position = ParticleSystem[ip].position + FluidContainer[ic].normal * (abs(normalDist) + RadiusMask);
+                particleSystem[ip].position = particleSystem[ip].position + FluidContainer[ic].normal * (abs(normalDist) + RadiusMask);
             }
             
             if (abs(normalDist) < RadiusMask)
             {
-                Vt_normal_value  = glm::dot(ParticleSystem[ip].velocity, FluidContainer[ic].normal);
-                Vt_liquit        = ParticleSystem[ip].velocity - Vt_normal_value * FluidContainer[ic].normal;
-                ParticleSystem[ip].velocity = Vt_liquit;
+                Vt_normal_value  = glm::dot(particleSystem[ip].velocity, FluidContainer[ic].normal);
+                Vt_liquit        = particleSystem[ip].velocity - Vt_normal_value * FluidContainer[ic].normal;
+                particleSystem[ip].velocity = Vt_liquit;
 
-                ParticleSystem[ip].density  += MASS * KernelFunction(abs(normalDist), smoothing_scale,h_9) * 10;
+                particleSystem[ip].density  += MASS * KernelFunction(abs(normalDist), smoothing_scale,h_9) * 10;
                 
                 
                 if (normalDist > 0 && normalDist <  RadiusMask/2)
                 {   
-                    ParticleSystem[ip].position = ParticleSystem[ip].position + FluidContainer[ic].normal * (RadiusMask/2 - normalDist)*0.5f;
+                    particleSystem[ip].position = particleSystem[ip].position + FluidContainer[ic].normal * (RadiusMask/2 - normalDist)*0.5f;
                 }
                 
-                //ParticleSystem[ip].force += K * FluidContainer[ic].normal * MASS * (RadiusMask - abs(normalDist));
+                //particleSystem[ip].force += K * FluidContainer[ic].normal * MASS * (RadiusMask - abs(normalDist));
                 
                 float pressure_factor;
                 float MU = 0.001f;
 
                 glm::vec3 viscosity_factor;
                 
-                float i_density   = ParticleSystem[ip].density;
+                float i_density   = particleSystem[ip].density;
 
                 glm::vec3 delta   = normalDist * FluidContainer[ic].normal;
                 //pressure_factor   = - MASS * MASS * i_density;
-                //pressure_factor  *= (ParticleSystem[ip].pressure  / (i_density * i_density) + 
+                //pressure_factor  *= (particleSystem[ip].pressure  / (i_density * i_density) + 
                 //                     0.0  / (i_density * i_density) );
 
-                pressure_factor    = -(MASS * MASS / (i_density * ParticleSystem[ip].density0));
-                pressure_factor   *=  ((ParticleSystem[ip].pressure + 0.0) / 2.0);  // pressure_j = K * ((p/p)**7 - 1)
+                pressure_factor    = -(MASS * MASS / (i_density * particleSystem[ip].density0));
+                pressure_factor   *=  ((particleSystem[ip].pressure + 0.0) / 2.0);  // pressure_j = K * ((p/p)**7 - 1)
 
-                //std::cout << "Force 0: " << ParticleSystem[ip].force.y <<std::endl;
-                ParticleSystem[ip].force += pressure_factor * KernelGrad(delta, smoothing_scale,h_6) * 1.0f;
-                //std::cout << "Force 1: " << ParticleSystem[ip].force.y <<std::endl;
-                viscosity_factor  = MU * (MASS / ParticleSystem[ip].density0) * (glm::vec3(0.0,0.0,0.0) - ParticleSystem[ip].velocity);
+                //std::cout << "Force 0: " << particleSystem[ip].force.y <<std::endl;
+                particleSystem[ip].force += pressure_factor * KernelGrad(delta, smoothing_scale,h_6) * 1.0f;
+                //std::cout << "Force 1: " << particleSystem[ip].force.y <<std::endl;
+                viscosity_factor  = MU * (MASS / particleSystem[ip].density0) * (glm::vec3(0.0,0.0,0.0) - particleSystem[ip].velocity);
 
-                ParticleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
+                particleSystem[ip].force += viscosity_factor * KernelLaplacian(delta, smoothing_scale,h_6);
 
-                //std::cout << "Force 2: " << ParticleSystem[ip].force.y <<std::endl;
+                //std::cout << "Force 2: " << particleSystem[ip].force.y <<std::endl;
                 
             }   
         }
     }    
 }
+/*
+void solidCollisions(   Particle            particleSystem[],
+                        Solid               solidSystem[], 
+                        std::vector<int>    SNEIGHBOURS,
+                        int                 num_particles, 
+                        float               RadiusMask,
+                        float               smoothing_scale, 
+                        float               h_9,
+                        float               h_6,
+                        float               Ksolid,
+                        float               MASS,
+                        int                 particleIdx)
+{
+    int n_idx;
+    
+    glm::vec3 s_pos;
+    glm::vec3 i_pos = particleSystem[particleIdx].position;
 
-void SimulatePhysics(Particle ParticleSystem[], 
-                     Container FluidContainer[], 
-                     float&tSim, float& v0, 
-                     int num_particles, 
-                     float timeStep, 
-                     float Radius,
-                     float smoothing_scale,
-                     float h_9,
-                     float h_6,
-                     float k0,
-                     float MU,
-                     float sigma0,
-                     float MASS)
+    float i_pressure;
+    for (int s_neighbour = 0; s_neighbour < SNEIGHBOURS.size(); s_neighbour++)
+    {
+        n_idx = SNEIGHBOURS[s_neighbour];
+        s_pos = solidSystem[n_idx].position;
+
+        DensityEstimator(particleSystem, particleIdx, i_pos, s_pos, smoothing_scale, h_9, MASS);
+    }
+
+    i_pressure  = Ksolid * (pow(particleSystem[particleIdx].density/particleSystem[particleIdx].density0, 7) - 1);
+    particleSystem[particleIdx].pressure = i_pressure;
+
+}
+*/
+void DensityEstimator(Particle particleSystem[], int ip, glm::vec3 i_pos, glm::vec3 n_pos, float smoothing_scale, float h_9, float MASS)
+{
+    float delta = glm::distance(i_pos, n_pos);
+    particleSystem[ip].density += MASS * KernelFunction(delta, smoothing_scale,h_9);
+}
+
+void SimulatePhysics(   Particle    particleSystem[],
+                        Solid       solidSystem[],
+                        Container   FluidContainer[], 
+                        float&      tSim, 
+                        float&      v0, 
+                        int         num_particles,
+                        int         num_solidparticles, 
+                        float       timeStep, 
+                        float       Radius,
+                        float       smoothing_scale,
+                        float       h_9,
+                        float       h_6,
+                        float       k0,
+                        float       MU,
+                        float       sigma0,
+                        float       MASS)
 {   
     double t_start, t_finish;
 
@@ -220,7 +273,7 @@ void SimulatePhysics(Particle ParticleSystem[],
     float RadiusMask      = Radius + Mask;
     
     t_start  = omp_get_wtime();
-    ContainerCollisions(ParticleSystem, FluidContainer, num_particles, RadiusMask, smoothing_scale, h_9, h_6,MASS);
+    ContainerCollisions(particleSystem, FluidContainer, num_particles, RadiusMask, smoothing_scale, h_9, h_6,MASS);
 
     t_finish = omp_get_wtime();
 
@@ -231,47 +284,69 @@ void SimulatePhysics(Particle ParticleSystem[],
     glm::vec3 i_pos;
     glm::vec3 j_pos;
     glm::vec3 n_pos;
+    glm::vec3 s_pos;
 
     float delta;
     float i_pressure;
    
     int   n_idx;
 
-    std::vector<int> NEIGHBOURS;
+    std::vector<int> PNEIGHBOURS;
+    std::vector<int> SNEIGHBOURS;
 
     double t_start2 = omp_get_wtime();
-#   pragma omp parallel for private(NEIGHBOURS, i_pressure, n_idx, delta, i_pos, j_pos, n_pos, aceleration) num_threads(8)
+#   pragma omp parallel for private(PNEIGHBOURS, SNEIGHBOURS, i_pressure, n_idx, delta, i_pos, j_pos, n_pos, s_pos, aceleration) num_threads(8)
     for (int ip = 0; ip < num_particles; ip++)
     {
-        i_pos = ParticleSystem[ip].position;
-        ParticleSystem[ip].density = 1000.0;
-        NEIGHBOURS.clear();
-
+        i_pos = particleSystem[ip].position;
+        particleSystem[ip].density = 1000.0;
+        PNEIGHBOURS.clear();
+        SNEIGHBOURS.clear();
 
         for (int jp = 0; jp < num_particles; jp++)
         {
             if (ip != jp)
             {
-                j_pos = ParticleSystem[jp].position;
+                j_pos = particleSystem[jp].position;
                 delta = glm::distance(i_pos, j_pos);
 
                 if (abs(delta) < smoothing_scale)
                 {
-                    NEIGHBOURS.push_back(jp);
+                    PNEIGHBOURS.push_back(jp);
                 }
             }
 
         }
 
-        for (int i_neighbour = 0; i_neighbour < NEIGHBOURS.size(); i_neighbour++)
+        for (int sp = 0; sp < num_solidparticles; sp++)
         {
-            n_idx = NEIGHBOURS[i_neighbour];
-            n_pos = ParticleSystem[n_idx].position;
+            s_pos = solidSystem[sp].position;
+            delta = glm::distance(i_pos, s_pos);
 
-            DensityEstimator(ParticleSystem, ip, i_pos, n_pos, smoothing_scale, h_9, MASS);
+            if (abs(delta) < smoothing_scale)
+            {
+                SNEIGHBOURS.push_back(sp);
+            }
         }
         
-        
+        // Densities
+
+        for (int i_neighbour = 0; i_neighbour < PNEIGHBOURS.size(); i_neighbour++)
+        {
+            n_idx = PNEIGHBOURS[i_neighbour];
+            n_pos = particleSystem[n_idx].position;
+
+            DensityEstimator(particleSystem, ip, i_pos, n_pos, smoothing_scale, h_9, MASS);
+        }
+
+        for (int s_neighbour = 0; s_neighbour < SNEIGHBOURS.size(); s_neighbour++)
+        {
+            n_idx = SNEIGHBOURS[s_neighbour];
+            s_pos = solidSystem[n_idx].position;
+            
+            DensityEstimator(particleSystem, ip, i_pos, s_pos, smoothing_scale, h_9, MASS);
+        }
+
         float newK;
         float newSigma;
         if (i_pos.y < 0.5)
@@ -292,20 +367,26 @@ void SimulatePhysics(Particle ParticleSystem[],
             newSigma = sigma0/2.0;           
         }
 
-        i_pressure  = newK * (pow(ParticleSystem[ip].density/ParticleSystem[ip].density0, 7) - 1);
-        ParticleSystem[ip].pressure = i_pressure;
+        i_pressure  = newK * (pow(particleSystem[ip].density/particleSystem[ip].density0, 7) - 1);
+        particleSystem[ip].pressure = i_pressure;
 
-        //if (i_pressure > 0.0)
-        //    std::cout << "i_pressure = " << i_pressure << std::endl;
-        t_start  = omp_get_wtime();
-        for (int i_neighbour = 0; i_neighbour < NEIGHBOURS.size(); i_neighbour++)
+        //t_start  = omp_get_wtime();
+        for (int i_neighbour = 0; i_neighbour < PNEIGHBOURS.size(); i_neighbour++)
         {
-            n_idx = NEIGHBOURS[i_neighbour];
-            n_pos = ParticleSystem[n_idx].position;
+            n_idx = PNEIGHBOURS[i_neighbour];
+            n_pos = particleSystem[n_idx].position;
 
-            AccumulateForces(ParticleSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_9, h_6, newK, MU, newSigma, MASS);            
+            accumulateForces(particleSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_9, h_6, newK, MU, newSigma, MASS, false);            
         }
-        t_finish = omp_get_wtime();
+
+        for (int s_neighbour = 0; s_neighbour < SNEIGHBOURS.size(); s_neighbour++)
+        {
+            n_idx = SNEIGHBOURS[s_neighbour];
+            s_pos = solidSystem[n_idx].position;
+            //std::cout << "pos = " << s_pos.x << ", " << s_pos.y << ", " << s_pos.z << ", r = "<< sqrt(s_pos.x* s_pos.x + s_pos.y*s_pos.y + s_pos.z * s_pos.z) <<std::endl;
+            accumulateForces(particleSystem, ip, n_idx, i_pos, s_pos, smoothing_scale, h_9, h_6, newK*0.1, MU*3, newSigma, MASS, true);            
+        }
+        //t_finish = omp_get_wtime();
 
         time_elapsed = t_finish - t_start;
         
@@ -320,9 +401,9 @@ void SimulatePhysics(Particle ParticleSystem[],
 
     for (int ip = 0; ip < num_particles; ip++)
     {
-        aceleration  = ParticleSystem[ip].force * (1 /  MASS);
-        ParticleSystem[ip].velocity += timeStep * aceleration;
-        ParticleSystem[ip].position += ParticleSystem[ip].velocity * timeStep;
+        aceleration  = particleSystem[ip].force * (1 /  MASS);
+        particleSystem[ip].velocity += timeStep * aceleration;
+        particleSystem[ip].position += particleSystem[ip].velocity * timeStep;
     }
     
     tSim += timeStep;
