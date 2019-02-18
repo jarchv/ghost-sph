@@ -59,7 +59,8 @@ glm::vec3 KernelGrad(glm::vec3 delta, float h, float h_6)
     return  - factor * glm::normalize(delta);   
 }
 
-void accumulateForces(  Particle    particleSystem[], 
+void accumulateForces(  Particle    particleSystem[],
+                        Solid       solidSystem[],
                         int         ip, 
                         int         np, 
                         glm::vec3   i_pos, 
@@ -88,8 +89,13 @@ void accumulateForces(  Particle    particleSystem[],
 
     if (isSolid == true)
     {
-        n_density   = particleSystem[np].density0;
-        n_pressure  = 0.0;
+        n_density   = particleSystem[ip].density;
+        n_pressure  = particleSystem[ip].pressure;
+        float Vt_normal_value  = glm::dot(particleSystem[ip].velocity, solidSystem[np].normal);
+        glm::vec3 Vt_liquit    = particleSystem[ip].velocity - Vt_normal_value * solidSystem[np].normal;
+        
+        //particleSystem[ip].velocity = Vt_liquit;
+        n_velocity  = Vt_liquit;
     }
 
     else
@@ -339,7 +345,7 @@ void SimulatePhysics(   Particle    particleSystem[],
             n_idx = PNEIGHBOURS[i_neighbour];
             n_pos = particleSystem[n_idx].position;
 
-            accumulateForces(particleSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_9, h_6, MU*0.5, newSigma, MASS, false);            
+            accumulateForces(particleSystem, solidSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_9, h_6, MU*0.5, newSigma, MASS, false);            
         }
 
         for (int s_neighbour = 0; s_neighbour < SNEIGHBOURS.size(); s_neighbour++)
@@ -347,7 +353,7 @@ void SimulatePhysics(   Particle    particleSystem[],
             n_idx = SNEIGHBOURS[s_neighbour];
             s_pos = solidSystem[n_idx].position;
             //std::cout << "pos = " << s_pos.x << ", " << s_pos.y << ", " << s_pos.z << ", r = "<< sqrt(s_pos.x* s_pos.x + s_pos.y*s_pos.y + s_pos.z * s_pos.z) <<std::endl;
-            accumulateForces(particleSystem, ip, n_idx, i_pos, s_pos, smoothing_scale*0.8, h_9, h_6, MU*1.5, newSigma, MASS, true);
+            accumulateForces(particleSystem, solidSystem, ip, n_idx, i_pos, s_pos, smoothing_scale, h_9, h_6, MU*10.0, newSigma, MASS, true);
             glm::vec3 deltaOBJ = particleSystem[ip].position - s_pos;
             float normalDist   = glm::dot(deltaOBJ, solidSystem[n_idx].normal);
 

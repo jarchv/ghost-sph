@@ -38,7 +38,7 @@ float timeStep        = 0.01;
 
 float particleCubeSize = 0.5;
 float cubePartPosX0    = 0.0;
-float cubePartPosY0    = 3.0;
+float cubePartPosY0    = 4.5;
 float cubePartPosZ0    = 1.0;
 
 
@@ -55,7 +55,7 @@ float h_6           = smoothing_scale * smoothing_scale * smoothing_scale *
 // angleRes: angles per theta/phi
 
 
-int angleRes                      = 20;
+int angleRes                      = 10;
 int nSphVtx                       = 18;
 int sphereSizeRes                 = nSphVtx * angleRes * angleRes;
 //std::vector<float> particleColor  = {0.0, 0.5, 0.45};
@@ -67,11 +67,11 @@ std::vector<float> particleCenter = {0.0, 0.0, 0.0};
 * ===============
 */
 
-float objRadius                   = 0.4;
+float objRadius                   = 0.7;
 int objAngleRes                   = 40;
 int objectSizeRes                 = nSphVtx * objAngleRes * objAngleRes;
 std::vector<float> objectColor    = {0.95, 0.1, 0.15};
-std::vector<float> objectCenter   = {0.0, 2.0, 1.0};
+std::vector<float> objectCenter   = {0.0, 3.0, 1.0};
 
 const int obj_num_particles       = 1000;
 

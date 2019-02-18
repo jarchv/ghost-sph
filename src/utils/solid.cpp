@@ -17,14 +17,15 @@ void createObject(Solid solidSystem[], int num_objectparticles, float objRadius,
     for (int i = 0; i < num_objectparticles; i++)
     {
         //tempRadius  = ((float)(rand()%1000) / 1000.0);
-        tempRadius  = objRadius * 0.9;
+        tempRadius  = objRadius * 1.0;
         
         theta       = ((float)(rand()%1000) / 1000.0);
         theta      *= OBJPI;
 
         phi         = ((float)(rand()%1000) / 1000.0);
-		phi        *= (2 * OBJPI);
-
+		phi        *= (2.0 * OBJPI);
+        
+        std::cout << "theta : " << theta << std::endl;
         posX = cos(OBJPI - theta)*           tempRadius + objCener[0];
 		posY = sin(OBJPI - theta)*sin(phi) * tempRadius + objCener[1];
 		posZ = sin(OBJPI - theta)*cos(phi) * tempRadius + objCener[2];
