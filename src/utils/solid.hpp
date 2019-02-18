@@ -7,6 +7,7 @@
 
 struct Solid{
     glm::vec3 position;
+    glm::vec3 normal;
     glm::vec3 velocity = glm::vec3(0.0,0.0,0.0);
     glm::vec3 force    = glm::vec3(0.0,0.0,0.0);
     float     density0 = 1000.0;

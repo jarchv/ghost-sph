@@ -30,7 +30,7 @@ void main()
     // Material properties
     vec3 MaterialDiffuseColor  = fragmentColor;
     //vec3 MaterialDiffuseColor  = vec3(0.2,0.2,0.6);
-    vec3 MaterialAmbientColor  = vec3(1.0,1.0,1.0) * MaterialDiffuseColor;
+    vec3 MaterialAmbientColor  = vec3(0.4,0.4,0.4) * MaterialDiffuseColor;
     vec3 MaterialSpecularColor = vec3(0.6,0.6,0.6);
 
     // Distance to the light
@@ -59,7 +59,7 @@ void main()
 	// clamped to 0
 	//  - Looking into the reflection -> 1
 	//  - Looking elsewhere -> < 1
-    float cosAlpha = clamp( dot( E,R ), 0,1 );  
+    float cosAlpha = clamp( dot( E,R ), 0.0,1.0 );  
 
 	color.rgb = 
 		// Ambient : simulates indirect lighting
@@ -67,7 +67,7 @@ void main()
 		// Diffuse : "color" of the object
 		MaterialDiffuseColor  * LightColor * LightPower * cosTheta / (distance*distance) +
 		// Specular : reflective highlight, like a mirror
-        MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,100) / (distance*distance);
+        MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / (distance*distance);
     
     color.a = Transparent;
 

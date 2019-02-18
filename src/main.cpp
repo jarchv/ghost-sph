@@ -25,7 +25,7 @@ Particle  ParticleSystem[num_particles];
 Container FluidContainer[5];
 
 float K               = 10.0f;
-float MU              = 100.1f;
+float MU              = 100.0f;
 float SIGMA           = 0.000;
 float MASS            = 0.12f;          // MASS OF A DROP = 50e-6 kg (Set 20 drops)
 
@@ -38,7 +38,7 @@ float timeStep        = 0.01;
 
 float particleCubeSize = 0.5;
 float cubePartPosX0    = 0.0;
-float cubePartPosY0    = 2.0;
+float cubePartPosY0    = 3.0;
 float cubePartPosZ0    = 1.0;
 
 
@@ -59,7 +59,7 @@ int angleRes                      = 20;
 int nSphVtx                       = 18;
 int sphereSizeRes                 = nSphVtx * angleRes * angleRes;
 //std::vector<float> particleColor  = {0.0, 0.5, 0.45};
-std::vector<float> particleColor  = {0.0, 0.5, 0.65};
+std::vector<float> particleColor  = {0.0, 0.5, 0.95};
 std::vector<float> particleCenter = {0.0, 0.0, 0.0};
 
 /*
@@ -67,13 +67,13 @@ std::vector<float> particleCenter = {0.0, 0.0, 0.0};
 * ===============
 */
 
-float objRadius                   = 0.2;
+float objRadius                   = 0.4;
 int objAngleRes                   = 40;
 int objectSizeRes                 = nSphVtx * objAngleRes * objAngleRes;
-std::vector<float> objectColor    = {0.75, 0.1, 0.15};
-std::vector<float> objectCenter   = {0.0, 1.5, 1.0};
+std::vector<float> objectColor    = {0.95, 0.1, 0.15};
+std::vector<float> objectCenter   = {0.0, 2.0, 1.0};
 
-const int obj_num_particles       = 100;
+const int obj_num_particles       = 1000;
 
 Solid solidSystem[obj_num_particles];
 

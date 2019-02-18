@@ -17,7 +17,7 @@ void createObject(Solid solidSystem[], int num_objectparticles, float objRadius,
     for (int i = 0; i < num_objectparticles; i++)
     {
         //tempRadius  = ((float)(rand()%1000) / 1000.0);
-        tempRadius  = objRadius;
+        tempRadius  = objRadius * 0.9;
         
         theta       = ((float)(rand()%1000) / 1000.0);
         theta      *= OBJPI;
@@ -29,6 +29,9 @@ void createObject(Solid solidSystem[], int num_objectparticles, float objRadius,
 		posY = sin(OBJPI - theta)*sin(phi) * tempRadius + objCener[1];
 		posZ = sin(OBJPI - theta)*cos(phi) * tempRadius + objCener[2];
 
-        solidSystem[i].position = glm::vec3(posX, posY, posZ);       
+        solidSystem[i].position = glm::vec3(posX, posY, posZ);
+        solidSystem[i].normal   = glm::vec3(cos(OBJPI - theta), 
+                                            sin(OBJPI - theta)*sin(phi), 
+                                            sin(OBJPI - theta)*cos(phi));       
     }
 }
