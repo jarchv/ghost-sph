@@ -17,4 +17,5 @@ struct Solid{
 
 #endif
 
-void createObject(Solid solidSystem[], int num_objectparticles, float objRadius, std::vector<float> objCener);
+void createObject(Solid solidSystem[], int num_objectparticles, int angleRes, float objRadius, std::vector<float> objCener);
+//void createObject(Solid solidSystem[], int num_objectparticles, float objRadius, std::vector<float> objCener);

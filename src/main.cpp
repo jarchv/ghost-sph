@@ -36,9 +36,9 @@ float tSim            = 0.0;
 float v0              = 0.0;
 float timeStep        = 0.01;
 
-float particleCubeSize = 0.5;
+float particleCubeSize = 0.7;
 float cubePartPosX0    = 0.0;
-float cubePartPosY0    = 4.5;
+float cubePartPosY0    = 4.2;
 float cubePartPosZ0    = 1.0;
 
 
@@ -67,13 +67,14 @@ std::vector<float> particleCenter = {0.0, 0.0, 0.0};
 * ===============
 */
 
-float objRadius                   = 0.7;
+float objRadius                   = 0.8;
 int objAngleRes                   = 40;
 int objectSizeRes                 = nSphVtx * objAngleRes * objAngleRes;
 std::vector<float> objectColor    = {0.95, 0.1, 0.15};
 std::vector<float> objectCenter   = {0.0, 3.0, 1.0};
 
-const int obj_num_particles       = 1000;
+int obj_res = 40;
+const int obj_num_particles       = 1600;//1000;
 
 Solid solidSystem[obj_num_particles];
 
@@ -162,7 +163,9 @@ int main(int argc, char** argv)
                         g_objectnormal_buffer_data,
                         objAngleRes);
 
-    createObject(solidSystem, obj_num_particles, objRadius, objectCenter);
+    //int resolution = 20;
+
+    createObject(solidSystem, obj_num_particles, obj_res, objRadius, objectCenter);
 
     std::cout << "num of particles : " << num_particles <<std::endl;
     GLuint VertexArrayID;

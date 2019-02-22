@@ -315,7 +315,7 @@ void SimulatePhysics(   Particle    particleSystem[],
         float newSigma;
         if (i_pos.y < 0.5)
         {
-            newK     = k0 * 200;
+            newK     = k0 * 100;
             newSigma = sigma0 * 100;
         }
 
@@ -345,7 +345,7 @@ void SimulatePhysics(   Particle    particleSystem[],
             n_idx = PNEIGHBOURS[i_neighbour];
             n_pos = particleSystem[n_idx].position;
 
-            accumulateForces(particleSystem, solidSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_9, h_6, MU*0.5, newSigma, MASS, false);            
+            accumulateForces(particleSystem, solidSystem, ip, n_idx, i_pos, n_pos, smoothing_scale, h_9, h_6, MU*8.0, newSigma, MASS, false);            
         }
 
         for (int s_neighbour = 0; s_neighbour < SNEIGHBOURS.size(); s_neighbour++)
@@ -353,7 +353,7 @@ void SimulatePhysics(   Particle    particleSystem[],
             n_idx = SNEIGHBOURS[s_neighbour];
             s_pos = solidSystem[n_idx].position;
             //std::cout << "pos = " << s_pos.x << ", " << s_pos.y << ", " << s_pos.z << ", r = "<< sqrt(s_pos.x* s_pos.x + s_pos.y*s_pos.y + s_pos.z * s_pos.z) <<std::endl;
-            accumulateForces(particleSystem, solidSystem, ip, n_idx, i_pos, s_pos, smoothing_scale, h_9, h_6, MU*10.0, newSigma, MASS, true);
+            accumulateForces(particleSystem, solidSystem, ip, n_idx, i_pos, s_pos, smoothing_scale*2, h_9, h_6, MU*4.0, newSigma, MASS, true);
             glm::vec3 deltaOBJ = particleSystem[ip].position - s_pos;
             float normalDist   = glm::dot(deltaOBJ, solidSystem[n_idx].normal);
 
