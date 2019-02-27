@@ -8,8 +8,8 @@
         
 GLFWwindow* window;
         
-#include "common/loadshader.hpp"
-#include "common/controls.hpp"
+#include "commons/loadshader.hpp"
+#include "commons/controls.hpp"
 
 #include "utils/sphere.hpp"
 

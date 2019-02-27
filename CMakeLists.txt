@@ -5,25 +5,11 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 
-
+file(GLOB UTILS src/utils/*.cpp)
+file(GLOB COMMONS src/commons/*.cpp)
 add_library(base
-    #src/main.cpp
-    src/common/controls.cpp
-    src/common/controls.hpp
-    src/common/loadshader.cpp
-    src/common/loadshader.hpp
-
-    src/utils/sphere.cpp
-    src/utils/sphere.hpp
-    src/utils/sampling.cpp
-    src/utils/sampling.hpp
-    src/utils/physics.cpp
-    src/utils/physics.hpp
-        
-    src/utils/container.hpp
-    src/utils/container.cpp
-    src/utils/solid.hpp
-    src/utils/solid.cpp
+    ${UTILS}
+    ${COMMONS}
 )
 
 target_compile_features(base PUBLIC cxx_std_11)
