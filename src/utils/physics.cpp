@@ -4,6 +4,7 @@
 
 #include "sphere.hpp"
 #include "physics.hpp"
+#include "sampling.hpp"
 
 #define PIV 3.14159
 
@@ -207,7 +208,6 @@ void SimulatePhysics(   Particle    particleSystem[],
                         Solid       solidSystem[],
                         Container   FluidContainer[], 
                         float&      tSim, 
-                        float&      v0, 
                         int         num_particles,
                         int         num_solidparticles, 
                         float       timeStep, 
@@ -385,4 +385,30 @@ void SimulatePhysics(   Particle    particleSystem[],
     
     tSim += timeStep;
     
+}
+
+void setRandomPosition(Particle ParticleSystem[], float lcube, int ip, glm::vec3 C)
+{
+    float epsilonX = ((float)(rand()%1000) / 1000.0);
+    float epsilonY = ((float)(rand()%1000) / 1000.0);
+    float epsilonZ = ((float)(rand()%1000) / 1000.0);
+    //std::cout << "epsilon = " << epsilon << std::endl;
+    ParticleSystem[ip].position.x = epsilonX * lcube - lcube/2.0 + C.x;//+ 0.0;
+    ParticleSystem[ip].position.y = epsilonY * lcube - lcube/2.0 + C.y;
+    ParticleSystem[ip].position.z = epsilonZ * lcube - lcube/2.0 + C.z;
+    ParticleSystem[ip].velocity  += glm::vec3(0.0,2.0,0.0);
+    //ParticleSystem[ip].force      = glm::vec3(0.0,0.0,0.0);   
+}
+
+
+void goBack(Particle ParticleSystem[], int num_particles, float lcube, glm::vec3 C)
+{
+#   pragma omp parallel for shared(ParticleSystem) num_threads(4)
+    for (int ip = 0; ip < num_particles; ip++)   
+    {
+        if (ParticleSystem[ip].position.y < 0.5f)
+        {
+            setRandomPosition(ParticleSystem, lcube, ip, C);
+        }
+    }
 }

@@ -33,7 +33,6 @@ int windowSizeW       = 720;
 int windowSizeH       = 480;
 
 float tSim            = 0.0;
-float v0              = 0.0;
 float timeStep        = 0.01;
 
 float particleCubeSize = 0.7;
@@ -494,7 +493,6 @@ int main(int argc, char** argv)
                         solidSystem, 
                         FluidContainer, 
                         tSim, 
-                        v0, 
                         num_particles, 
                         obj_num_particles, 
                         timeStep, 
@@ -502,6 +500,7 @@ int main(int argc, char** argv)
                         smoothing_scale, 
                         h_9, h_6, K, MU, SIGMA, MASS);
 
+        goBack(ParticleSystem, num_particles, particleCubeSize, glm::vec3(cubePartPosX0,cubePartPosY0,cubePartPosZ0));
         for(size_t i = 0; i < num_particles; i++)
         {
             ModelMatrix       = glm::translate(glm::mat4(1.0),glm::vec3(ParticleSystem[i].position.x,

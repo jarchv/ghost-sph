@@ -7,7 +7,6 @@ void SimulatePhysics(   Particle    ParticleSystem[],
                         Solid       solidSystem[],
                         Container   FluidContainer[], 
                         float&      tSim, 
-                        float&      v0, 
                         int         num_particles,
                         int         num_solidparticles, 
                         float       timeStep, 
@@ -19,3 +18,5 @@ void SimulatePhysics(   Particle    ParticleSystem[],
                         float       MU,
                         float       sigma0,
                         float       MASS);
+
+void goBack(Particle ParticleSystem[], int num_particles, float lcube, glm::vec3 C);
